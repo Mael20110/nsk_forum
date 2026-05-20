@@ -1,53 +1,66 @@
-const form = document.getElementById("contactForm");
-const status = document.getElementById("status");
+let messages = JSON.parse(localStorage.getItem("messages")) || [];
 
-// mots interdits
-const bannedWords = ["spam", "hack", "arnaque", "insulte"];
+function renderMessages(){
+  const container = document.getElementById("messages");
+  container.innerHTML = "";
 
-// anti-spam simple (limite temps)
-let lastSend = 0;
+  messages.forEach((msg, index) => {
+    container.innerHTML += `
+      <div class="message">
+        <b>${msg.name}</b> <br>
+        <span class="small">${msg.email}</span>
+        <p>${msg.text}</p>
 
-form.addEventListener("submit", function (e) {
+        <span class="status ${msg.status}">
+          ${msg.status}
+        </span>
+      </div>
+    `;
+  });
+}
+
+document.getElementById("contactForm").addEventListener("submit", function(e){
   e.preventDefault();
 
-  const now = Date.now();
-  if (now - lastSend < 10000) {
-    status.innerText = "⛔ Attends quelques secondes avant de renvoyer un message.";
-    return;
-  }
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const message = document.getElementById("message").value;
 
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const message = document.getElementById("message").value.trim();
-
-  // longueur minimum
-  if (message.length < 20) {
-    status.innerText = "❌ Minimum 20 caractères.";
-    return;
-  }
-
-  // mots interdits
-  if (bannedWords.some(word => message.toLowerCase().includes(word))) {
-    status.innerText = "❌ Message refusé (mot interdit).";
-    return;
-  }
-
-  const newMessage = {
+  messages.push({
     name,
     email,
-    message,
-    date: new Date().toLocaleString(),
-    response: "",
+    text: message,
     status: "pending"
-  };
-
-  let messages = JSON.parse(localStorage.getItem("messages")) || [];
-  messages.push(newMessage);
+  });
 
   localStorage.setItem("messages", JSON.stringify(messages));
 
-  lastSend = now;
+  document.getElementById("status").innerText = "Message envoyé ✔️";
 
-  status.innerText = "✅ Message envoyé !";
-  form.reset();
+  this.reset();
+  renderMessages();
 });
+
+function loginAdmin(){
+  const pass = document.getElementById("adminPass").value;
+
+  if(pass === "admin123"){
+    document.getElementById("adminPanel").style.display = "block";
+    alert("Admin connecté");
+  } else {
+    alert("Mot de passe incorrect");
+  }
+}
+
+function replyMessage(){
+  if(messages.length === 0) return;
+
+  messages[messages.length - 1].status = "answered";
+
+  localStorage.setItem("messages", JSON.stringify(messages));
+  renderMessages();
+
+  alert("Réponse envoyée");
+}
+
+renderMessages();
