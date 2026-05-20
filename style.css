@@ -1,101 +1,74 @@
-/* ======================
-   BASE
-====================== */
-
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0a0a0a;
-  color: white;
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0a0a0a;
+  color:white;
 }
 
-/* ======================
-   CONTAINER
-====================== */
-
-.container {
-  max-width: 750px;
-  margin: 30px auto;
-  padding: 20px;
-  background: #111;
-  border-radius: 16px;
+.container{
+  max-width:750px;
+  margin:30px auto;
+  padding:20px;
+  background:#111;
+  border-radius:16px;
 }
 
-/* ======================
-   INPUTS
-====================== */
-
-input,
-textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background: #000;
-  border: 1px solid #333;
-  color: white;
-  border-radius: 10px;
+input,textarea{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  background:#000;
+  border:1px solid #333;
+  color:white;
+  border-radius:10px;
 }
 
-/* ======================
-   BUTTON
-====================== */
-
-button {
-  width: 100%;
-  margin-top: 10px;
-  padding: 10px;
-  border: none;
-  border-radius: 10px;
-  background: white;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
+button{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:10px;
+  background:white;
+  color:black;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-/* ======================
-   MESSAGES
-====================== */
-
-.msg {
-  background: #0d0d0d;
-  border: 1px solid #222;
-  padding: 10px;
-  margin-top: 10px;
-  border-radius: 10px;
-  cursor: pointer;
+.msg{
+  background:#0d0d0d;
+  border:1px solid #222;
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
+  cursor:pointer;
 }
 
-.msg:hover {
-  border-color: #555;
+.msg:hover{
+  border-color:#555;
 }
 
-.selected {
-  border: 2px solid #00ff88;
+.selected{
+  border:2px solid #00ff88;
 }
 
-.small {
-  font-size: 12px;
-  opacity: 0.7;
+.small{
+  font-size:12px;
+  opacity:0.7;
 }
 
-.reply {
-  color: #00ff88;
-  margin-top: 5px;
+.reply{
+  color:#00ff88;
+  margin-top:5px;
 }
 
-/* ======================
-   MAINTENANCE SIMPLE
-====================== */
-
-.maintenance {
-  position: fixed;
-  inset: 0;
-  background: black;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  z-index: 9999;
+/* MAINTENANCE */
+.maintenance{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:black;
+  color:white;
 }
