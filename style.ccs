@@ -5,24 +5,22 @@ body{
   color:white;
 }
 
-/* centre seulement les pages simples */
+/* container */
 .container{
-  max-width:500px;
+  max-width:520px;
   margin:40px auto;
   background:#0f0f0f;
   padding:25px;
   border-radius:16px;
-  box-shadow: 0 0 25px rgba(255,255,255,0.05);
+  box-shadow:0 0 25px rgba(255,255,255,0.05);
 }
 
-/* TITRES */
+/* titre */
 h1{
   text-align:center;
-  font-size:26px;
-  letter-spacing:1px;
 }
 
-/* INPUTS STYLE IA MODERNE */
+/* inputs */
 input, textarea{
   width:100%;
   margin-top:12px;
@@ -31,16 +29,9 @@ input, textarea{
   border:1px solid #333;
   background:#111;
   color:white;
-  outline:none;
-  transition:0.2s;
 }
 
-input:focus, textarea:focus{
-  border-color:white;
-  transform: scale(1.01);
-}
-
-/* BOUTON STYLE CLEAN */
+/* bouton */
 button{
   width:100%;
   margin-top:15px;
@@ -51,15 +42,13 @@ button{
   color:black;
   font-weight:bold;
   cursor:pointer;
-  transition:0.2s;
 }
 
 button:hover{
-  background:#d9d9d9;
-  transform: translateY(-2px);
+  background:#ddd;
 }
 
-/* MESSAGE STATUS */
+/* message status */
 #status{
   text-align:center;
   margin-top:10px;
@@ -67,75 +56,41 @@ button:hover{
   opacity:0.8;
 }
 
-/* ========================= */
-/* ADMIN STYLE CHAT MODERNE */
-/* ========================= */
-
+/* admin box */
 .box{
-  background: linear-gradient(145deg, #111, #0a0a0a);
+  background:#111;
   border:1px solid #222;
   padding:15px;
   margin-top:15px;
   border-radius:14px;
-  transition:0.2s;
 }
 
-.box:hover{
-  transform: scale(1.01);
-  border-color:#444;
-}
-
-/* TEXTE MESSAGE STYLE CHAT */
-.box p{
-  margin:6px 0;
-  font-size:14px;
-}
-
-/* TEXTAREA ADMIN REPONSE */
+/* textarea admin */
 .box textarea{
   width:100%;
-  margin-top:10px;
   height:60px;
+  margin-top:10px;
   border-radius:10px;
-  border:1px solid #333;
   background:#0b0b0b;
   color:white;
+  border:1px solid #333;
 }
 
-/* BOUTONS ADMIN */
-.box button{
-  width:48%;
-  margin-top:10px;
-  padding:10px;
-  font-size:13px;
+/* status */
+.status{
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:20px;
+  display:inline-block;
+  margin:5px 0;
 }
 
-.box button:nth-child(5){
-  background:#ffffff;
+.pending{
+  background:#ffcc00;
+  color:black;
 }
 
-.box button:nth-child(6){
-  background:#ff3b3b;
-  color:white;
-}
-
-/* ========================= */
-/* VERSION CHAT (messages en bas style IA) */
-/* ========================= */
-
-/* scroll style futur chat */
-#messages{
-  max-height:70vh;
-  overflow-y:auto;
-  padding-bottom:20px;
-}
-
-/* scroll propre */
-#messages::-webkit-scrollbar{
-  width:6px;
-}
-
-#messages::-webkit-scrollbar-thumb{
-  background:#333;
-  border-radius:10px;
+.answered{
+  background:#00ff88;
+  color:black;
 }
