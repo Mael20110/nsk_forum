@@ -91,18 +91,23 @@ form.addEventListener("submit", e=>{
 // ===== SELECT MESSAGE (ADMIN) =====
 window.selectMsg = function(id){
 
+  const msg = messages.find(m => String(m.id) === String(id));
+
+  if(!msg){
+    console.log("Message introuvable :", id);
+    return;
+  }
+
   if(selectedId === id){
     selectedId = null;
     selectedDiv.innerText = "Aucun";
   } else {
     selectedId = id;
-    const msg = messages.find(m => m.id === id);
     selectedDiv.innerText = msg.text;
   }
 
   render();
 }
-
 // ===== LOGIN ADMIN (IMPORTANT FIX) =====
 window.login = function(){
 
