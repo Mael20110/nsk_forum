@@ -4,7 +4,7 @@
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: Arial;
   background: #0a0a0a;
   color: white;
 }
@@ -34,7 +34,6 @@ textarea {
   border: 1px solid #333;
   color: white;
   border-radius: 10px;
-  outline: none;
 }
 
 /* ======================
@@ -51,11 +50,6 @@ button {
   color: black;
   font-weight: bold;
   cursor: pointer;
-  transition: 0.2s;
-}
-
-button:hover {
-  background: #ddd;
 }
 
 /* ======================
@@ -69,7 +63,6 @@ button:hover {
   margin-top: 10px;
   border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .msg:hover {
@@ -86,20 +79,12 @@ button:hover {
 }
 
 .reply {
-  margin-top: 5px;
   color: #00ff88;
+  margin-top: 5px;
 }
 
 /* ======================
-   ADMIN PANEL
-====================== */
-
-#admin {
-  margin-top: 10px;
-}
-
-/* ======================
-   MAINTENANCE MODE (SAFE)
+   MAINTENANCE SIMPLE
 ====================== */
 
 .maintenance {
@@ -111,52 +96,6 @@ button:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
-  z-index: 9999;
   text-align: center;
-}
-
-/* BANDES CHANTIER SUR LES CÔTÉS */
-.maintenance::before,
-.maintenance::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  width: 80px;
-  height: 100vh;
-  background: repeating-linear-gradient(
-    45deg,
-    #ff0000,
-    #ff0000 20px,
-    #000 20px,
-    #000 40px
-  );
-  animation: moveStripes 1.2s linear infinite;
-  z-index: 10000;
-}
-
-.maintenance::before {
-  left: 0;
-}
-
-.maintenance::after {
-  right: 0;
-}
-
-/* animation */
-@keyframes moveStripes {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 0 80px;
-  }
-}
-
-/* ======================
-   SCROLL FIX
-====================== */
-
-html, body {
-  height: 100%;
+  z-index: 9999;
 }
