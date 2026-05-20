@@ -4,6 +4,22 @@ let isAdmin = false;
 
 const badWords = ["merde","putain","fuck"];
 
+// ELEMENTS SAFE
+const form = document.getElementById("form");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const textInput = document.getElementById("text");
+const searchInput = document.getElementById("search");
+
+const messagesDiv = document.getElementById("messages");
+const selectedDiv = document.getElementById("selected");
+
+const passInput = document.getElementById("pass");
+const adminPanel = document.getElementById("admin");
+
+const replyInput = document.getElementById("reply");
+const cmdInput = document.getElementById("cmd");
+
 // SAVE
 function save(){
   localStorage.setItem("msgs", JSON.stringify(messages));
@@ -16,17 +32,16 @@ function uid(){
 
 // RENDER
 function render(){
-  const box = document.getElementById("messages");
-  const searchVal = search.value?.toLowerCase() || "";
+  const searchVal = searchInput.value?.toLowerCase() || "";
 
-  box.innerHTML = "";
+  messagesDiv.innerHTML = "";
 
   messages
     .filter(m => m.text.toLowerCase().includes(searchVal))
     .forEach(m => {
 
-      box.innerHTML += `
-        <div class="msg ${selectedId===m.id?'selected':''}">
+      messagesDiv.innerHTML += `
+        <div class="msg ${selectedId===m.id ? 'selected' : ''}">
 
           ${isAdmin ? `
             <div class="admin-check" onclick="selectMsg('${m.id}')">
@@ -51,16 +66,18 @@ function render(){
 form.addEventListener("submit", e=>{
   e.preventDefault();
 
-  if(badWords.some(w=>text.value.toLowerCase().includes(w))){
+  const textVal = textInput.value.toLowerCase();
+
+  if(badWords.some(w => textVal.includes(w))){
     alert("Message bloqué");
     return;
   }
 
   messages.push({
     id: uid(),
-    name: name.value,
-    email: email.value,
-    text: text.value,
+    name: nameInput.value,
+    email: emailInput.value,
+    text: textInput.value,
     reply: "",
     time: new Date().toLocaleString()
   });
@@ -70,16 +87,16 @@ form.addEventListener("submit", e=>{
   form.reset();
 });
 
-// SELECT MESSAGE (ADMIN)
+// SELECT MESSAGE
 function selectMsg(id){
 
   if(selectedId === id){
     selectedId = null;
-    selected.innerText = "Aucun";
+    selectedDiv.innerText = "Aucun";
   } else {
     selectedId = id;
-    let msg = messages.find(m=>m.id===id);
-    selected.innerText = msg.text;
+    const msg = messages.find(m => m.id === id);
+    selectedDiv.innerText = msg.text;
   }
 
   render();
@@ -87,19 +104,23 @@ function selectMsg(id){
 
 // ADMIN LOGIN
 function login(){
-  if(pass.value === "admin123"){
-    admin.style.display = "block";
+
+  if(passInput.value === "admin123"){
     isAdmin = true;
+    adminPanel.style.display = "block";
+    alert("Admin connecté");
     render();
+  } else {
+    alert("Mot de passe incorrect");
   }
 }
 
 // REPLY
 function reply(){
-  let msg = messages.find(m=>m.id===selectedId);
+  const msg = messages.find(m => m.id === selectedId);
   if(!msg) return;
 
-  msg.reply = reply.value;
+  msg.reply = replyInput.value;
 
   save();
   render();
@@ -107,17 +128,17 @@ function reply(){
 
 // COMMANDS
 function runCmd(){
-  let c = cmd.value.split(" ");
+  const c = cmdInput.value.split(" ");
 
-  if(c[0]==="delete"){
-    messages = messages.filter(m=>m.id != c[1]);
+  if(c[0] === "delete"){
+    messages = messages.filter(m => m.id != c[1]);
   }
 
-  if(c[0]==="clear"){
+  if(c[0] === "clear"){
     messages = [];
   }
 
-  if(c[0]==="ban"){
+  if(c[0] === "ban"){
     badWords.push(c[1]);
   }
 
@@ -125,9 +146,9 @@ function runCmd(){
   render();
 }
 
-// AUTO UPDATE LIVE
+// AUTO UPDATE
 setInterval(()=>{
-  let newData = JSON.parse(localStorage.getItem("msgs")) || [];
+  const newData = JSON.parse(localStorage.getItem("msgs")) || [];
 
   if(JSON.stringify(newData) !== JSON.stringify(messages)){
     messages = newData;
@@ -136,7 +157,6 @@ setInterval(()=>{
 },800);
 
 // SEARCH
-search.addEventListener("input", render);
+searchInput.addEventListener("input", render);
 
-render();
 render();
