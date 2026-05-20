@@ -5,56 +5,108 @@
   <title>NSK Admin</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <div class="container">
-    <h1>Admin NSK Forum</h1>
+<div class="container">
+  <h1>NSK Forum Admin</h1>
 
-    <div id="messages"></div>
-  </div>
+  <button onclick="clearAll()">🗑 Vider tous les messages</button>
 
-  <script>
-    let messages = JSON.parse(localStorage.getItem("messages")) || [];
-    const container = document.getElementById("messages");
+  <div id="messages"></div>
+</div>
 
-    function loadMessages(){
-      container.innerHTML = "";
+<script>
+const ADMIN_PASSWORD = "nskcreateyoursab*";
 
-      messages.forEach((msg, index) => {
-        container.innerHTML += `
-          <div class="box">
-            <p><b>Nom:</b> ${msg.name}</p>
-            <p><b>Email:</b> ${msg.email}</p>
-            <p><b>Message:</b> ${msg.message}</p>
-            <p><b>Date:</b> ${msg.date}</p>
+// sécurité admin propre
+function checkAuth(){
+  const pass = localStorage.getItem("admin_pass");
 
-            <textarea placeholder="Réponse admin" id="r${index}">${msg.response}</textarea>
+  if(pass !== ADMIN_PASSWORD){
+    const input = prompt("Mot de passe admin NSK :");
 
-            <button onclick="saveResponse(${index})">Répondre</button>
-            <button onclick="deleteMsg(${index})">Supprimer</button>
-
-            <hr>
-          </div>
-        `;
-      });
+    if(input !== ADMIN_PASSWORD){
+      alert("Accès refusé");
+      window.location.href = "index.html";
+    } else {
+      localStorage.setItem("admin_pass", input);
     }
+  }
+}
 
-    function saveResponse(i){
-      let messages = JSON.parse(localStorage.getItem("messages")) || [];
-      messages[i].response = document.getElementById("r"+i).value;
-      localStorage.setItem("messages", JSON.stringify(messages));
-      alert("Réponse sauvegardée !");
-    }
+checkAuth();
 
-    function deleteMsg(i){
-      let messages = JSON.parse(localStorage.getItem("messages")) || [];
-      messages.splice(i, 1);
-      localStorage.setItem("messages", JSON.stringify(messages));
-      loadMessages();
-    }
+const container = document.getElementById("messages");
 
+function loadMessages(){
+  container.innerHTML = "";
+
+  let messages = JSON.parse(localStorage.getItem("messages")) || [];
+  messages = messages.reverse();
+
+  messages.forEach((msg, index) => {
+
+    container.innerHTML += `
+      <div class="box">
+
+        <div style="opacity:0.6;font-size:12px">
+          ${msg.date}
+        </div>
+
+        <div class="status ${msg.status}">
+          ${msg.status === "answered" ? "Répondu" : "En attente"}
+        </div>
+
+        <p><b>${msg.name}</b> (${msg.email})</p>
+
+        <div style="margin:10px 0;padding:10px;background:#0b0b0b;border-radius:10px;">
+          ${msg.message}
+        </div>
+
+        <textarea id="r${index}" placeholder="Réponse admin">
+${msg.response || ""}
+        </textarea>
+
+        <button onclick="saveResponse(${index})">Répondre</button>
+        <button onclick="deleteMsg(${index})">Supprimer</button>
+
+      </div>
+    `;
+  });
+}
+
+function saveResponse(i){
+  let messages = JSON.parse(localStorage.getItem("messages")) || [];
+
+  messages[i].response = document.getElementById("r"+i).value;
+  messages[i].status = "answered";
+
+  localStorage.setItem("messages", JSON.stringify(messages));
+
+  alert("Réponse sauvegardée !");
+  loadMessages();
+}
+
+function deleteMsg(i){
+  let messages = JSON.parse(localStorage.getItem("messages")) || [];
+
+  messages.splice(i, 1);
+
+  localStorage.setItem("messages", JSON.stringify(messages));
+
+  loadMessages();
+}
+
+function clearAll(){
+  if(confirm("Supprimer TOUS les messages ?")){
+    localStorage.removeItem("messages");
     loadMessages();
-  </script>
+  }
+}
+
+loadMessages();
+</script>
 
 </body>
 </html>
