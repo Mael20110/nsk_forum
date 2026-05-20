@@ -62,13 +62,45 @@ button{
   margin-top:5px;
 }
 
-/* MAINTENANCE */
-.maintenance{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  background:black;
-  color:white;
+.maintenance {
+  position: relative;
+  overflow: hidden;
+}
+
+/* BANDEROLES BORDS ÉCRAN */
+.maintenance::before,
+.maintenance::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  width: 80px;
+  height: 100vh;
+  background: repeating-linear-gradient(
+    45deg,
+    #ff0000,
+    #ff0000 20px,
+    #000000 20px,
+    #000000 40px
+  );
+  animation: slide 1.5s linear infinite;
+  z-index: 9999;
+}
+
+/* gauche */
+.maintenance::before {
+  left: 0;
+}
+
+/* droite */
+.maintenance::after {
+  right: 0;
+}
+
+@keyframes slide {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 80px;
+  }
 }
