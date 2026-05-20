@@ -7,7 +7,7 @@ body{
 
 /* container */
 .container{
-  max-width:520px;
+  max-width:600px;
   margin:40px auto;
   background:#0f0f0f;
   padding:25px;
@@ -15,26 +15,22 @@ body{
   box-shadow:0 0 25px rgba(255,255,255,0.05);
 }
 
-/* titre */
-h1{
-  text-align:center;
-}
-
 /* inputs */
 input, textarea{
   width:100%;
-  margin-top:12px;
+  margin-top:10px;
   padding:12px;
   border-radius:10px;
   border:1px solid #333;
   background:#111;
   color:white;
+  outline:none;
 }
 
-/* bouton */
+/* button */
 button{
   width:100%;
-  margin-top:15px;
+  margin-top:10px;
   padding:12px;
   border:none;
   border-radius:10px;
@@ -48,49 +44,43 @@ button:hover{
   background:#ddd;
 }
 
-/* message status */
+/* messages */
+.message{
+  background:#111;
+  border:1px solid #222;
+  padding:12px;
+  margin-top:10px;
+  border-radius:12px;
+}
+
+.small{
+  font-size:12px;
+  opacity:0.7;
+}
+
+/* status */
 #status{
   text-align:center;
   margin-top:10px;
-  font-size:14px;
   opacity:0.8;
 }
 
 /* admin box */
 .box{
-  background:#111;
-  border:1px solid #222;
-  padding:15px;
-  margin-top:15px;
-  border-radius:14px;
-}
-
-/* textarea admin */
-.box textarea{
-  width:100%;
-  height:60px;
-  margin-top:10px;
-  border-radius:10px;
+  margin-top:20px;
   background:#0b0b0b;
-  color:white;
-  border:1px solid #333;
+  padding:15px;
+  border-radius:14px;
+  border:1px solid #222;
 }
 
-/* status */
+/* status tags */
 .status{
   font-size:12px;
   padding:4px 10px;
   border-radius:20px;
   display:inline-block;
-  margin:5px 0;
 }
 
-.pending{
-  background:#ffcc00;
-  color:black;
-}
-
-.answered{
-  background:#00ff88;
-  color:black;
-}
+.pending{ background:#ffcc00; color:black; }
+.answered{ background:#00ff88; color:black; }
