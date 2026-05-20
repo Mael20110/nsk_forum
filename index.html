@@ -11,48 +11,46 @@
 
 <div class="container">
 
-  <h1>NSK Forum PRO</h1>
+<h1>NSK Forum PRO</h1>
 
-  <!-- FORM -->
-  <form id="contactForm">
-    <input type="text" id="name" placeholder="Nom" required>
-    <input type="email" id="email" placeholder="Email" required>
-    <textarea id="message" placeholder="Message" required></textarea>
-    <button>Envoyer</button>
-  </form>
+<!-- FORM -->
+<form id="form">
+  <input id="name" placeholder="Nom" required>
+  <input id="email" placeholder="Email" required>
+  <textarea id="text" placeholder="Message" required></textarea>
+  <button>Envoyer</button>
+</form>
 
-  <input type="text" id="search" placeholder="Rechercher un message...">
+<!-- SEARCH -->
+<input id="search" placeholder="Rechercher...">
 
-  <div id="messages"></div>
+<!-- MESSAGES -->
+<div id="messages"></div>
 
-  <hr style="opacity:0.1">
+<hr>
 
-  <!-- ADMIN -->
-  <div class="box">
-    <h3>Admin Panel</h3>
+<!-- ADMIN -->
+<div class="box">
 
-    <input type="password" id="adminPass" placeholder="Mot de passe">
-    <button onclick="loginAdmin()">Login</button>
+<h3>Admin Panel</h3>
 
-    <div id="adminPanel" style="display:none;">
+<input id="pass" type="password" placeholder="Mot de passe">
+<button onclick="login()">Login</button>
 
-      <p>Message sélectionné :</p>
-      <div id="selectedMsg">Aucun</div>
+<div id="admin" style="display:none;">
 
-      <textarea id="replyText" placeholder="Réponse"></textarea>
-      <button onclick="reply()">Répondre</button>
+  <p><b>Message sélectionné :</b></p>
+  <div id="selected">Aucun</div>
 
-      <input id="cmd" placeholder="Commande (delete 1 / clear / export)">
-      <button onclick="runCmd()">Run</button>
+  <textarea id="reply" placeholder="Réponse admin"></textarea>
+  <button onclick="reply()">Envoyer réponse</button>
 
-      <button onclick="exportData()">Exporter JSON</button>
+  <input id="cmd" placeholder="Commande (delete id / clear / ban mot)">
+  <button onclick="runCmd()">Run</button>
 
-      <button onclick="resetAll()" style="background:red;color:white;">
-        Reset
-      </button>
+</div>
 
-    </div>
-  </div>
+</div>
 
 </div>
 
