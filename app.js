@@ -41,24 +41,39 @@ const cmdInput = document.getElementById("cmd");
 // ======================
 async function loadSettings(){
 
-  const { data } = await supabase
+  console.log("📡 LOAD SETTINGS...");
+
+  const { data, error } = await supabase
     .from("settings")
     .select("*")
     .eq("id", 1)
     .single();
 
-  maintenance = data?.maintenance;
+  console.log("📦 DATA SETTINGS:", data);
+  console.log("❌ ERROR:", error);
 
-  if (maintenance) {
+  if (!data) {
+    console.log("🚨 PAS DE DATA");
+    return;
+  }
+
+  console.log("🛠️ MAINTENANCE VALUE:", data.maintenance);
+
+  if (data.maintenance === true) {
+    console.log("🚨 MAINTENANCE ACTIVE → BLOCK SITE");
+
     document.body.innerHTML = `
-      <div class="maintenance">
-        <h1>🛠️ Maintenance en cours</h1>
-        <p>Le site est temporairement fermé</p>
+      <div style="background:black;color:white;height:100vh;display:flex;justify-content:center;align-items:center;flex-direction:column">
+        <h1>🛠️ Maintenance</h1>
+        <p>Site fermé</p>
       </div>
     `;
-  }
-}
 
+    return;
+  }
+
+  console.log("🟢 SITE NORMAL");
+}
 // ======================
 // LOAD MESSAGES
 // ======================
