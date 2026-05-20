@@ -1,14 +1,22 @@
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
 // ======================
-// DATA
+// SUPABASE (TES IDS)
 // ======================
-let messages = JSON.parse(localStorage.getItem("msgs")) || [];
+const supabase = createClient(
+  "https://hchrmmvmkdqqhknfytwi.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
+);
+
+// ======================
+// STATE
+// ======================
 let selectedId = null;
 let isAdmin = false;
-
-const badWords = ["merde","putain","fuck"];
+let messages = [];
 
 // ======================
-// ELEMENTS
+// ELEMENTS (TES IDS HTML)
 // ======================
 const form = document.getElementById("form");
 const nameInput = document.getElementById("name");
@@ -26,36 +34,28 @@ const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
 // ======================
-// SAVE
+// LOAD MESSAGES
 // ======================
-function save(){
-  localStorage.setItem("msgs", JSON.stringify(messages));
-}
+async function loadMessages() {
 
-// ======================
-// SAFE ID
-// ======================
-function uid(){
-  return crypto.randomUUID();
-}
+  const { data, error } = await supabase
+    .from("messages")
+    .select("*")
+    .order("created_at", { ascending: true });
 
-// ======================
-// CLEAN DATA (ANTI BUG)
-// ======================
-function cleanData(){
-  messages = messages.filter(m =>
-    m &&
-    m.id !== undefined &&
-    m.text !== undefined
-  );
+  if (error) {
+    console.log("LOAD ERROR:", error);
+    return;
+  }
+
+  messages = data || [];
+  render();
 }
 
 // ======================
 // RENDER
 // ======================
-function render(){
-
-  cleanData();
+function render() {
 
   const searchVal = searchInput.value?.toLowerCase() || "";
 
@@ -66,21 +66,15 @@ function render(){
     .forEach(m => {
 
       messagesDiv.innerHTML += `
-        <div class="msg ${selectedId===m.id ? 'selected' : ''}"
+        <div class="msg ${selectedId === m.id ? "selected" : ""}"
              onclick="selectMsg('${m.id}')">
 
-          ${isAdmin ? `
-            <div class="admin-check">
-              ${selectedId===m.id ? "☑️" : "⬜"}
-            </div>
-          ` : ""}
+          ${isAdmin ? `<div class="admin-check">${selectedId === m.id ? "☑️" : "⬜"}</div>` : ""}
 
           <b>${m.name}</b>
           <span class="small">${m.email}</span>
 
           <p>${m.text}</p>
-
-          <span class="small">${m.time}</span>
 
           ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
         </div>
@@ -91,114 +85,100 @@ function render(){
 // ======================
 // SEND MESSAGE
 // ======================
-form.addEventListener("submit", async (e)=>{
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  console.log("🚀 TEST ENVOI");
-
-  const result = await supabase
+  const { error } = await supabase
     .from("messages")
     .insert([
       {
-        name: "DEBUG",
-        email: "debug@test.com",
-        text: "HELLO TEST",
+        name: nameInput.value,
+        email: emailInput.value,
+        text: textInput.value,
         reply: ""
       }
     ]);
 
-  console.log("RESULT:", result);
-});
-// ======================
-// SELECT MESSAGE (FIXED SAFE)
-// ======================
-window.selectMsg = function(id){
-
-  const msg = messages.find(m => String(m.id) === String(id));
-
-  if(!msg){
-    console.log("Message introuvable :", id);
+  if (error) {
+    console.log("INSERT ERROR:", error);
     return;
   }
 
-  if(selectedId === id){
-    selectedId = null;
-    selectedDiv.innerText = "Aucun";
-  } else {
-    selectedId = id;
-    selectedDiv.innerText = msg.text || "(vide)";
-  }
-
-  render();
-}
+  form.reset();
+  loadMessages();
+});
 
 // ======================
-// ADMIN LOGIN (FIXED)
+// SELECT MESSAGE
 // ======================
-window.login = function(){
+window.selectMsg = function (id) {
 
-  if(passInput.value.trim() === "admin123"){
+  const msg = messages.find(m => m.id === id);
+
+  if (!msg) return;
+
+  selectedId = id;
+  selectedDiv.innerText = msg.text;
+};
+
+// ======================
+// ADMIN LOGIN
+// ======================
+window.login = function () {
+
+  if (passInput.value.trim() === "admin123") {
     isAdmin = true;
     adminPanel.style.display = "block";
     alert("Admin connecté");
-    render();
   } else {
     alert("Mot de passe incorrect");
   }
-}
+};
 
 // ======================
 // REPLY
 // ======================
-window.reply = function(){
+window.reply = async function () {
 
-  const msg = messages.find(m => String(m.id) === String(selectedId));
+  if (!selectedId) return;
 
-  if(!msg){
-    alert("Aucun message sélectionné");
+  const { error } = await supabase
+    .from("messages")
+    .update({ reply: replyInput.value })
+    .eq("id", selectedId);
+
+  if (error) {
+    console.log("REPLY ERROR:", error);
     return;
   }
 
-  msg.reply = replyInput.value;
-
-  save();
-  render();
-}
+  replyInput.value = "";
+  loadMessages();
+};
 
 // ======================
 // COMMANDS
 // ======================
-window.runCmd = function(){
+window.runCmd = function () {
 
   const c = cmdInput.value.split(" ");
 
-  if(c[0] === "delete"){
-    messages = messages.filter(m => String(m.id) !== String(c[1]));
+  if (c[0] === "delete") {
+    supabase.from("messages").delete().eq("id", c[1]);
   }
 
-  if(c[0] === "clear"){
-    messages = [];
+  if (c[0] === "clear") {
+    supabase.from("messages").delete().neq("id", "x");
   }
 
-  if(c[0] === "ban"){
-    badWords.push(c[1]);
-  }
-
-  save();
-  render();
-}
+  cmdInput.value = "";
+  loadMessages();
+};
 
 // ======================
 // LIVE UPDATE
 // ======================
-setInterval(() => {
-  const newData = JSON.parse(localStorage.getItem("msgs")) || [];
-
-  if(JSON.stringify(newData) !== JSON.stringify(messages)){
-    messages = newData;
-    render();
-  }
-}, 800);
+setInterval(loadMessages, 2000);
 
 // ======================
 // SEARCH
@@ -208,4 +188,4 @@ searchInput.addEventListener("input", render);
 // ======================
 // INIT
 // ======================
-render();
+loadMessages();
