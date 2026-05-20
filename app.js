@@ -1,66 +1,126 @@
 let messages = JSON.parse(localStorage.getItem("messages")) || [];
+let selected = null;
 
-function renderMessages(){
-  const container = document.getElementById("messages");
-  container.innerHTML = "";
+const badWords = ["merde","putain"]; // modération simple
 
-  messages.forEach((msg, index) => {
-    container.innerHTML += `
-      <div class="message">
-        <b>${msg.name}</b> <br>
-        <span class="small">${msg.email}</span>
-        <p>${msg.text}</p>
+function save(){
+  localStorage.setItem("messages", JSON.stringify(messages));
+}
 
-        <span class="status ${msg.status}">
-          ${msg.status}
-        </span>
+function time(){
+  return new Date().toLocaleString();
+}
+
+// render
+function render(){
+  const box = document.getElementById("messages");
+  const search = document.getElementById("search")?.value?.toLowerCase() || "";
+
+  box.innerHTML = "";
+
+  messages
+  .filter(m => m.text.toLowerCase().includes(search))
+  .forEach((m,i)=>{
+
+    box.innerHTML += `
+      <div class="message ${selected===i?'selected':''}" onclick="selectMsg(${i})">
+        <b>${m.name}</b>
+        <span class="small">${m.email}</span>
+        <p>${m.text}</p>
+
+        <span class="small">${m.time}</span>
+
+        ${m.reply ? `<div class="reply">↳ ${m.reply}</div>` : ""}
       </div>
     `;
   });
 }
 
-document.getElementById("contactForm").addEventListener("submit", function(e){
+// add message
+document.getElementById("contactForm").addEventListener("submit",e=>{
   e.preventDefault();
 
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-  const message = document.getElementById("message").value;
+  let text = message.value.toLowerCase();
+
+  if(badWords.some(w=>text.includes(w))){
+    alert("Message bloqué (mots interdits)");
+    return;
+  }
 
   messages.push({
-    name,
-    email,
-    text: message,
-    status: "pending"
+    name:name.value,
+    email:email.value,
+    text:message.value,
+    reply:"",
+    time:time()
   });
 
-  localStorage.setItem("messages", JSON.stringify(messages));
-
-  document.getElementById("status").innerText = "Message envoyé ✔️";
-
-  this.reset();
-  renderMessages();
+  save();
+  render();
+  e.target.reset();
 });
 
-function loginAdmin(){
-  const pass = document.getElementById("adminPass").value;
+// select message
+function selectMsg(i){
+  selected = i;
+  document.getElementById("selectedMsg").innerText = messages[i].text;
+  render();
+}
 
-  if(pass === "admin123"){
-    document.getElementById("adminPanel").style.display = "block";
-    alert("Admin connecté");
-  } else {
-    alert("Mot de passe incorrect");
+// admin login
+function loginAdmin(){
+  if(adminPass.value === "admin123"){
+    adminPanel.style.display="block";
+  }else alert("Erreur");
+}
+
+// reply
+function reply(){
+  if(selected===null) return;
+
+  messages[selected].reply = replyText.value;
+  save();
+  render();
+}
+
+// commands
+function runCmd(){
+  let c = cmd.value.split(" ");
+
+  if(c[0]==="delete"){
+    messages.splice(c[1],1);
+  }
+
+  if(c[0]==="clear"){
+    messages = [];
+  }
+
+  if(c[0]==="ban"){
+    badWords.push(c[1]);
+    alert("Mot banni ajouté");
+  }
+
+  save();
+  render();
+}
+
+// export data
+function exportData(){
+  const data = JSON.stringify(messages);
+  navigator.clipboard.writeText(data);
+  alert("Copié JSON !");
+}
+
+// reset
+function resetAll(){
+  if(confirm("Tout supprimer ?")){
+    messages = [];
+    save();
+    render();
   }
 }
 
-function replyMessage(){
-  if(messages.length === 0) return;
+// search live
+document.getElementById("search").addEventListener("input",render);
 
-  messages[messages.length - 1].status = "answered";
-
-  localStorage.setItem("messages", JSON.stringify(messages));
-  renderMessages();
-
-  alert("Réponse envoyée");
-}
-
-renderMessages();
+render();
