@@ -1,11 +1,15 @@
-// ===== DATA =====
+// ======================
+// DATA
+// ======================
 let messages = JSON.parse(localStorage.getItem("msgs")) || [];
 let selectedId = null;
 let isAdmin = false;
 
 const badWords = ["merde","putain","fuck"];
 
-// ===== ELEMENTS =====
+// ======================
+// ELEMENTS
+// ======================
 const form = document.getElementById("form");
 const nameInput = document.getElementById("name");
 const emailInput = document.getElementById("email");
@@ -21,18 +25,38 @@ const adminPanel = document.getElementById("admin");
 const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
-// ===== SAVE =====
+// ======================
+// SAVE
+// ======================
 function save(){
   localStorage.setItem("msgs", JSON.stringify(messages));
 }
 
-// ===== ID =====
+// ======================
+// SAFE ID
+// ======================
 function uid(){
-  return Date.now() + Math.random();
+  return crypto.randomUUID();
 }
 
-// ===== RENDER =====
+// ======================
+// CLEAN DATA (ANTI BUG)
+// ======================
+function cleanData(){
+  messages = messages.filter(m =>
+    m &&
+    m.id !== undefined &&
+    m.text !== undefined
+  );
+}
+
+// ======================
+// RENDER
+// ======================
 function render(){
+
+  cleanData();
+
   const searchVal = searchInput.value?.toLowerCase() || "";
 
   messagesDiv.innerHTML = "";
@@ -42,10 +66,11 @@ function render(){
     .forEach(m => {
 
       messagesDiv.innerHTML += `
-        <div class="msg ${selectedId===m.id ? 'selected' : ''}">
+        <div class="msg ${selectedId===m.id ? 'selected' : ''}"
+             onclick="selectMsg('${m.id}')">
 
           ${isAdmin ? `
-            <div class="admin-check" onclick="selectMsg('${m.id}')">
+            <div class="admin-check">
               ${selectedId===m.id ? "☑️" : "⬜"}
             </div>
           ` : ""}
@@ -63,7 +88,9 @@ function render(){
     });
 }
 
-// ===== SEND MESSAGE =====
+// ======================
+// SEND MESSAGE
+// ======================
 form.addEventListener("submit", e=>{
   e.preventDefault();
 
@@ -88,7 +115,9 @@ form.addEventListener("submit", e=>{
   form.reset();
 });
 
-// ===== SELECT MESSAGE (ADMIN) =====
+// ======================
+// SELECT MESSAGE (FIXED SAFE)
+// ======================
 window.selectMsg = function(id){
 
   const msg = messages.find(m => String(m.id) === String(id));
@@ -103,12 +132,15 @@ window.selectMsg = function(id){
     selectedDiv.innerText = "Aucun";
   } else {
     selectedId = id;
-    selectedDiv.innerText = msg.text;
+    selectedDiv.innerText = msg.text || "(vide)";
   }
 
   render();
 }
-// ===== LOGIN ADMIN (IMPORTANT FIX) =====
+
+// ======================
+// ADMIN LOGIN (FIXED)
+// ======================
 window.login = function(){
 
   if(passInput.value.trim() === "admin123"){
@@ -121,10 +153,17 @@ window.login = function(){
   }
 }
 
-// ===== REPLY =====
+// ======================
+// REPLY
+// ======================
 window.reply = function(){
-  const msg = messages.find(m => m.id === selectedId);
-  if(!msg) return;
+
+  const msg = messages.find(m => String(m.id) === String(selectedId));
+
+  if(!msg){
+    alert("Aucun message sélectionné");
+    return;
+  }
 
   msg.reply = replyInput.value;
 
@@ -132,12 +171,15 @@ window.reply = function(){
   render();
 }
 
-// ===== COMMAND SYSTEM =====
+// ======================
+// COMMANDS
+// ======================
 window.runCmd = function(){
+
   const c = cmdInput.value.split(" ");
 
   if(c[0] === "delete"){
-    messages = messages.filter(m => m.id != c[1]);
+    messages = messages.filter(m => String(m.id) !== String(c[1]));
   }
 
   if(c[0] === "clear"){
@@ -152,18 +194,24 @@ window.runCmd = function(){
   render();
 }
 
-// ===== LIVE UPDATE =====
-setInterval(()=>{
+// ======================
+// LIVE UPDATE
+// ======================
+setInterval(() => {
   const newData = JSON.parse(localStorage.getItem("msgs")) || [];
 
   if(JSON.stringify(newData) !== JSON.stringify(messages)){
     messages = newData;
     render();
   }
-},800);
+}, 800);
 
-// ===== SEARCH =====
+// ======================
+// SEARCH
+// ======================
 searchInput.addEventListener("input", render);
 
-// ===== INIT =====
-render(); 
+// ======================
+// INIT
+// ======================
+render();
