@@ -1,7 +1,9 @@
+console.log("🔥 APP START");
+
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 // ======================
-// SUPABASE (TES IDS)
+// SUPABASE
 // ======================
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
@@ -11,42 +13,61 @@ const supabase = createClient(
 // ======================
 // STATE
 // ======================
+let messages = [];
 let selectedId = null;
 let isAdmin = false;
-let messages = [];
+let maintenance = false;
 
 // ======================
-// ELEMENTS (TES IDS HTML)
+// ELEMENTS
 // ======================
 const form = document.getElementById("form");
 const nameInput = document.getElementById("name");
 const emailInput = document.getElementById("email");
 const textInput = document.getElementById("text");
-const searchInput = document.getElementById("search");
 
 const messagesDiv = document.getElementById("messages");
-const selectedDiv = document.getElementById("selected");
+const searchInput = document.getElementById("search");
 
 const passInput = document.getElementById("pass");
 const adminPanel = document.getElementById("admin");
 
+const selectedDiv = document.getElementById("selected");
 const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
 // ======================
+// LOAD SETTINGS (MAINTENANCE GLOBAL)
+// ======================
+async function loadSettings(){
+
+  const { data } = await supabase
+    .from("settings")
+    .select("*")
+    .eq("id", 1)
+    .single();
+
+  maintenance = data?.maintenance;
+
+  if (maintenance) {
+    document.body.innerHTML = `
+      <div class="maintenance">
+        <h1>🛠️ Maintenance en cours</h1>
+        <p>Le site est temporairement fermé</p>
+      </div>
+    `;
+  }
+}
+
+// ======================
 // LOAD MESSAGES
 // ======================
-async function loadMessages() {
+async function loadMessages(){
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("messages")
     .select("*")
     .order("created_at", { ascending: true });
-
-  if (error) {
-    console.log("LOAD ERROR:", error);
-    return;
-  }
 
   messages = data || [];
   render();
@@ -55,28 +76,26 @@ async function loadMessages() {
 // ======================
 // RENDER
 // ======================
-function render() {
+function render(){
 
-  const searchVal = searchInput.value?.toLowerCase() || "";
+  const search = searchInput.value?.toLowerCase() || "";
 
   messagesDiv.innerHTML = "";
 
   messages
-    .filter(m => m.text.toLowerCase().includes(searchVal))
+    .filter(m => m.text.toLowerCase().includes(search))
     .forEach(m => {
 
       messagesDiv.innerHTML += `
         <div class="msg ${selectedId === m.id ? "selected" : ""}"
              onclick="selectMsg('${m.id}')">
 
-          ${isAdmin ? `<div class="admin-check">${selectedId === m.id ? "☑️" : "⬜"}</div>` : ""}
-
           <b>${m.name}</b>
           <span class="small">${m.email}</span>
 
           <p>${m.text}</p>
 
-          ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
+          ${m.reply ? `<div class="reply">↳ ${m.reply}</div>` : ""}
         </div>
       `;
     });
@@ -85,24 +104,15 @@ function render() {
 // ======================
 // SEND MESSAGE
 // ======================
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", async (e)=>{
   e.preventDefault();
 
-  const { error } = await supabase
-    .from("messages")
-    .insert([
-      {
-        name: nameInput.value,
-        email: emailInput.value,
-        text: textInput.value,
-        reply: ""
-      }
-    ]);
-
-  if (error) {
-    console.log("INSERT ERROR:", error);
-    return;
-  }
+  await supabase.from("messages").insert([{
+    name: nameInput.value,
+    email: emailInput.value,
+    text: textInput.value,
+    reply: ""
+  }]);
 
   form.reset();
   loadMessages();
@@ -111,81 +121,75 @@ form.addEventListener("submit", async (e) => {
 // ======================
 // SELECT MESSAGE
 // ======================
-window.selectMsg = function (id) {
+window.selectMsg = function(id){
 
   const msg = messages.find(m => m.id === id);
-
-  if (!msg) return;
+  if(!msg) return;
 
   selectedId = id;
   selectedDiv.innerText = msg.text;
 };
 
 // ======================
-// ADMIN LOGIN
+// LOGIN ADMIN
 // ======================
-window.login = function () {
+window.login = function(){
 
-  if (passInput.value.trim() === "admin123") {
+  if(passInput.value === "admin123"){
     isAdmin = true;
     adminPanel.style.display = "block";
     alert("Admin connecté");
-  } else {
-    alert("Mot de passe incorrect");
   }
 };
 
 // ======================
 // REPLY
 // ======================
-window.reply = async function () {
+window.reply = async function(){
 
-  if (!selectedId) return;
-
-  const { error } = await supabase
+  await supabase
     .from("messages")
     .update({ reply: replyInput.value })
     .eq("id", selectedId);
-
-  if (error) {
-    console.log("REPLY ERROR:", error);
-    return;
-  }
 
   replyInput.value = "";
   loadMessages();
 };
 
 // ======================
-// COMMANDS
+// ADMIN COMMANDS
 // ======================
-window.runCmd = function () {
+window.runCmd = async function(){
 
   const c = cmdInput.value.split(" ");
 
-  if (c[0] === "delete") {
-    supabase.from("messages").delete().eq("id", c[1]);
+  // 🛠️ MAINTENANCE ON
+  if (c[0] === "maintenance" && c[1] === "on") {
+
+    await supabase
+      .from("settings")
+      .update({ maintenance: true })
+      .eq("id", 1);
+
+    alert("🛠️ Maintenance ON");
   }
 
-  if (c[0] === "clear") {
-    supabase.from("messages").delete().neq("id", "x");
+  // 🟢 MAINTENANCE OFF
+  if (c[0] === "maintenance" && c[1] === "off") {
+
+    await supabase
+      .from("settings")
+      .update({ maintenance: false })
+      .eq("id", 1);
+
+    alert("🟢 Maintenance OFF");
   }
 
   cmdInput.value = "";
-  loadMessages();
 };
-
-// ======================
-// LIVE UPDATE
-// ======================
-setInterval(loadMessages, 2000);
-
-// ======================
-// SEARCH
-// ======================
-searchInput.addEventListener("input", render);
 
 // ======================
 // INIT
 // ======================
+loadSettings();
 loadMessages();
