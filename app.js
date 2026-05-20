@@ -91,30 +91,24 @@ function render(){
 // ======================
 // SEND MESSAGE
 // ======================
-form.addEventListener("submit", e=>{
+form.addEventListener("submit", async (e)=>{
   e.preventDefault();
 
-  const txt = textInput.value.toLowerCase();
+  console.log("🚀 TEST ENVOI");
 
-  if(badWords.some(w => txt.includes(w))){
-    alert("Message bloqué");
-    return;
-  }
+  const result = await supabase
+    .from("messages")
+    .insert([
+      {
+        name: "DEBUG",
+        email: "debug@test.com",
+        text: "HELLO TEST",
+        reply: ""
+      }
+    ]);
 
-  messages.push({
-    id: uid(),
-    name: nameInput.value,
-    email: emailInput.value,
-    text: textInput.value,
-    reply: "",
-    time: new Date().toLocaleString()
-  });
-
-  save();
-  render();
-  form.reset();
+  console.log("RESULT:", result);
 });
-
 // ======================
 // SELECT MESSAGE (FIXED SAFE)
 // ======================
