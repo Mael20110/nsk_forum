@@ -16,7 +16,7 @@ const supabase = createClient(
 let messages = [];
 let selectedId = null;
 let isAdmin = false;
-let maintenance = false;
+let maintenance = true;
 
 // ======================
 // ELEMENTS
