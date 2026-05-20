@@ -1,10 +1,12 @@
 console.log("🔥 APP.JS CHARGÉ");
-let maintenance = false; // 👉 change ça à true pour activer
+
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 // ======================
-// SUPABASE (TES IDS)
+// CONFIG
 // ======================
+let maintenance = false;
+
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
@@ -16,9 +18,10 @@ const supabase = createClient(
 let selectedId = null;
 let isAdmin = false;
 let messages = [];
+let lastSend = 0;
 
 // ======================
-// ELEMENTS (TES IDS HTML)
+// ELEMENTS
 // ======================
 const form = document.getElementById("form");
 const nameInput = document.getElementById("name");
@@ -36,21 +39,28 @@ const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
 // ======================
-// LOAD MESSAGES
+// MAINTENANCE MODE
 // ======================
-async function loadMessages() {
+function checkMaintenance() {
+  if (!maintenance) return false;
 
-  if (maintenance) {
   document.body.innerHTML = `
     <div class="maintenance">
       <h1>🛠️ Maintenance en cours</h1>
       <p>Le site est temporairement fermé</p>
-
       <div class="ribbons"></div>
     </div>
   `;
-  return;
+
+  return true;
 }
+
+// ======================
+// LOAD MESSAGES
+// ======================
+async function loadMessages() {
+
+  if (checkMaintenance()) return;
 
   const { data, error } = await supabase
     .from("messages")
@@ -75,25 +85,27 @@ function render() {
 
   messagesDiv.innerHTML = "";
 
-  messages
-    .filter(m => m.text.toLowerCase().includes(searchVal))
-    .forEach(m => {
+  const filtered = messages
+    .filter(m => m.text?.toLowerCase().includes(searchVal))
+    .filter(m => !m.blocked); // 🚀 anti-banned messages
 
-      messagesDiv.innerHTML += `
-        <div class="msg ${selectedId === m.id ? "selected" : ""}"
-             onclick="selectMsg('${m.id}')">
+  filtered.forEach(m => {
 
-          ${isAdmin ? `<div class="admin-check">${selectedId === m.id ? "☑️" : "⬜"}</div>` : ""}
+    messagesDiv.innerHTML += `
+      <div class="msg ${selectedId === m.id ? "selected" : ""}"
+           onclick="selectMsg('${m.id}')">
 
-          <b>${m.name}</b>
-          <span class="small">${m.email}</span>
+        ${isAdmin ? `<div class="admin-check">${selectedId === m.id ? "☑️" : "⬜"}</div>` : ""}
 
-          <p>${m.text}</p>
+        <b>${m.name}</b>
+        <span class="small">${m.email}</span>
 
-          ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
-        </div>
-      `;
-    });
+        <p>${m.text}</p>
+
+        ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
+      </div>
+    `;
+  });
 }
 
 // ======================
@@ -102,6 +114,25 @@ function render() {
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const now = Date.now();
+
+  // ⛔ anti spam
+  if (now - lastSend < 5000) {
+    alert("⛔ Attends avant de renvoyer un message");
+    return;
+  }
+
+  lastSend = now;
+
+  // ⛔ filtre
+  const text = textInput.value.toLowerCase();
+  const badWords = ["merde", "putain", "fuck"];
+
+  if (badWords.some(w => text.includes(w))) {
+    alert("⛔ Message bloqué");
+    return;
+  }
+
   const { error } = await supabase
     .from("messages")
     .insert([
@@ -109,7 +140,8 @@ form.addEventListener("submit", async (e) => {
         name: nameInput.value,
         email: emailInput.value,
         text: textInput.value,
-        reply: ""
+        reply: "",
+        blocked: false
       }
     ]);
 
@@ -136,7 +168,7 @@ window.selectMsg = function (id) {
 };
 
 // ======================
-// ADMIN LOGIN
+// LOGIN ADMIN
 // ======================
 window.login = function () {
 
@@ -162,7 +194,7 @@ window.reply = async function () {
     .eq("id", selectedId);
 
   if (error) {
-    console.log("REPLY ERROR:", error);
+    console.log(error);
     return;
   }
 
@@ -176,6 +208,12 @@ window.reply = async function () {
 window.runCmd = function () {
 
   const c = cmdInput.value.split(" ");
+
+  if (c[0] === "block") {
+    supabase.from("messages")
+      .update({ blocked: true })
+      .eq("id", c[1]);
+  }
 
   if (c[0] === "delete") {
     supabase.from("messages").delete().eq("id", c[1]);
