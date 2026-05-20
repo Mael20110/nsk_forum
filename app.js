@@ -39,6 +39,18 @@ const cmdInput = document.getElementById("cmd");
 // ======================
 async function loadMessages() {
 
+  if (maintenance) {
+  document.body.innerHTML = `
+    <div class="maintenance">
+      <h1>🛠️ Maintenance en cours</h1>
+      <p>Le site est temporairement fermé</p>
+
+      <div class="ribbons"></div>
+    </div>
+  `;
+  return;
+}
+
   const { data, error } = await supabase
     .from("messages")
     .select("*")
