@@ -9,7 +9,7 @@
 
 <body>
 
-<div class="container">
+<div class="container" id="app">
 
 <h1>NSK Forum PRO</h1>
 
@@ -27,25 +27,23 @@
 <hr>
 
 <div class="box">
+  <h3>Admin Panel</h3>
 
-<h3>Admin Panel</h3>
+  <input id="pass" type="password" placeholder="Mot de passe">
+  <button onclick="login()">Login</button>
 
-<input id="pass" type="password" placeholder="Mot de passe">
-<button onclick="login()">Login</button>
+  <div id="admin" style="display:none;">
 
-<div id="admin" style="display:none;">
+    <p><b>Message sélectionné :</b></p>
+    <div id="selected">Aucun</div>
 
-  <p><b>Message sélectionné :</b></p>
-  <div id="selected">Aucun</div>
+    <textarea id="reply" placeholder="Réponse admin"></textarea>
+    <button onclick="reply()">Envoyer réponse</button>
 
-  <textarea id="reply" placeholder="Réponse admin"></textarea>
-  <button onclick="reply()">Envoyer réponse</button>
+    <input id="cmd" placeholder="maintenance on / maintenance off">
+    <button onclick="runCmd()">Run</button>
 
-  <input id="cmd" placeholder="maintenance on / maintenance off">
-  <button onclick="runCmd()">Run</button>
-
-</div>
-
+  </div>
 </div>
 
 </div>
