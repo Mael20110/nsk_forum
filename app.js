@@ -1,10 +1,11 @@
+// ===== DATA =====
 let messages = JSON.parse(localStorage.getItem("msgs")) || [];
 let selectedId = null;
 let isAdmin = false;
 
 const badWords = ["merde","putain","fuck"];
 
-// ELEMENTS SAFE
+// ===== ELEMENTS =====
 const form = document.getElementById("form");
 const nameInput = document.getElementById("name");
 const emailInput = document.getElementById("email");
@@ -20,17 +21,17 @@ const adminPanel = document.getElementById("admin");
 const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
-// SAVE
+// ===== SAVE =====
 function save(){
   localStorage.setItem("msgs", JSON.stringify(messages));
 }
 
-// ID
+// ===== ID =====
 function uid(){
   return Date.now() + Math.random();
 }
 
-// RENDER
+// ===== RENDER =====
 function render(){
   const searchVal = searchInput.value?.toLowerCase() || "";
 
@@ -56,19 +57,19 @@ function render(){
 
           <span class="small">${m.time}</span>
 
-          ${m.reply ? `<div class="reply">↳ ${m.reply}</div>` : ""}
+          ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
         </div>
       `;
     });
 }
 
-// SEND MESSAGE
+// ===== SEND MESSAGE =====
 form.addEventListener("submit", e=>{
   e.preventDefault();
 
-  const textVal = textInput.value.toLowerCase();
+  const txt = textInput.value.toLowerCase();
 
-  if(badWords.some(w => textVal.includes(w))){
+  if(badWords.some(w => txt.includes(w))){
     alert("Message bloqué");
     return;
   }
@@ -87,8 +88,8 @@ form.addEventListener("submit", e=>{
   form.reset();
 });
 
-// SELECT MESSAGE
-function selectMsg(id){
+// ===== SELECT MESSAGE (ADMIN) =====
+window.selectMsg = function(id){
 
   if(selectedId === id){
     selectedId = null;
@@ -102,10 +103,10 @@ function selectMsg(id){
   render();
 }
 
-// ADMIN LOGIN
-function login(){
+// ===== LOGIN ADMIN (IMPORTANT FIX) =====
+window.login = function(){
 
-  if(passInput.value === "admin123"){
+  if(passInput.value.trim() === "admin123"){
     isAdmin = true;
     adminPanel.style.display = "block";
     alert("Admin connecté");
@@ -115,8 +116,8 @@ function login(){
   }
 }
 
-// REPLY
-function reply(){
+// ===== REPLY =====
+window.reply = function(){
   const msg = messages.find(m => m.id === selectedId);
   if(!msg) return;
 
@@ -126,8 +127,8 @@ function reply(){
   render();
 }
 
-// COMMANDS
-function runCmd(){
+// ===== COMMAND SYSTEM =====
+window.runCmd = function(){
   const c = cmdInput.value.split(" ");
 
   if(c[0] === "delete"){
@@ -146,7 +147,7 @@ function runCmd(){
   render();
 }
 
-// AUTO UPDATE
+// ===== LIVE UPDATE =====
 setInterval(()=>{
   const newData = JSON.parse(localStorage.getItem("msgs")) || [];
 
@@ -156,7 +157,8 @@ setInterval(()=>{
   }
 },800);
 
-// SEARCH
+// ===== SEARCH =====
 searchInput.addEventListener("input", render);
 
-render();
+// ===== INIT =====
+render(); 
