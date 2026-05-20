@@ -1,94 +1,116 @@
-let messages = JSON.parse(localStorage.getItem("messages")) || [];
-let selected = null;
+let messages = JSON.parse(localStorage.getItem("msgs")) || [];
+let selectedId = null;
+let isAdmin = false;
 
-const badWords = ["merde","putain"]; // modération simple
+const badWords = ["merde","putain","fuck"];
 
+// SAVE
 function save(){
-  localStorage.setItem("messages", JSON.stringify(messages));
+  localStorage.setItem("msgs", JSON.stringify(messages));
 }
 
-function time(){
-  return new Date().toLocaleString();
+// ID
+function uid(){
+  return Date.now() + Math.random();
 }
 
-// render
+// RENDER
 function render(){
   const box = document.getElementById("messages");
-  const search = document.getElementById("search")?.value?.toLowerCase() || "";
+  const searchVal = search.value?.toLowerCase() || "";
 
   box.innerHTML = "";
 
   messages
-  .filter(m => m.text.toLowerCase().includes(search))
-  .forEach((m,i)=>{
+    .filter(m => m.text.toLowerCase().includes(searchVal))
+    .forEach(m => {
 
-    box.innerHTML += `
-      <div class="message ${selected===i?'selected':''}" onclick="selectMsg(${i})">
-        <b>${m.name}</b>
-        <span class="small">${m.email}</span>
-        <p>${m.text}</p>
+      box.innerHTML += `
+        <div class="msg ${selectedId===m.id?'selected':''}">
 
-        <span class="small">${m.time}</span>
+          ${isAdmin ? `
+            <div class="admin-check" onclick="selectMsg('${m.id}')">
+              ${selectedId===m.id ? "☑️" : "⬜"}
+            </div>
+          ` : ""}
 
-        ${m.reply ? `<div class="reply">↳ ${m.reply}</div>` : ""}
-      </div>
-    `;
-  });
+          <b>${m.name}</b>
+          <span class="small">${m.email}</span>
+
+          <p>${m.text}</p>
+
+          <span class="small">${m.time}</span>
+
+          ${m.reply ? `<div class="reply">↳ ${m.reply}</div>` : ""}
+        </div>
+      `;
+    });
 }
 
-// add message
-document.getElementById("contactForm").addEventListener("submit",e=>{
+// SEND MESSAGE
+form.addEventListener("submit", e=>{
   e.preventDefault();
 
-  let text = message.value.toLowerCase();
-
-  if(badWords.some(w=>text.includes(w))){
-    alert("Message bloqué (mots interdits)");
+  if(badWords.some(w=>text.value.toLowerCase().includes(w))){
+    alert("Message bloqué");
     return;
   }
 
   messages.push({
-    name:name.value,
-    email:email.value,
-    text:message.value,
-    reply:"",
-    time:time()
+    id: uid(),
+    name: name.value,
+    email: email.value,
+    text: text.value,
+    reply: "",
+    time: new Date().toLocaleString()
   });
 
   save();
   render();
-  e.target.reset();
+  form.reset();
 });
 
-// select message
-function selectMsg(i){
-  selected = i;
-  document.getElementById("selectedMsg").innerText = messages[i].text;
+// SELECT MESSAGE (ADMIN)
+function selectMsg(id){
+
+  if(selectedId === id){
+    selectedId = null;
+    selected.innerText = "Aucun";
+  } else {
+    selectedId = id;
+    let msg = messages.find(m=>m.id===id);
+    selected.innerText = msg.text;
+  }
+
   render();
 }
 
-// admin login
-function loginAdmin(){
-  if(adminPass.value === "admin123"){
-    adminPanel.style.display="block";
-  }else alert("Erreur");
+// ADMIN LOGIN
+function login(){
+  if(pass.value === "admin123"){
+    admin.style.display = "block";
+    isAdmin = true;
+    render();
+  }
 }
 
-// reply
+// REPLY
 function reply(){
-  if(selected===null) return;
+  let msg = messages.find(m=>m.id===selectedId);
+  if(!msg) return;
 
-  messages[selected].reply = replyText.value;
+  msg.reply = reply.value;
+
   save();
   render();
 }
 
-// commands
+// COMMANDS
 function runCmd(){
   let c = cmd.value.split(" ");
 
   if(c[0]==="delete"){
-    messages.splice(c[1],1);
+    messages = messages.filter(m=>m.id != c[1]);
   }
 
   if(c[0]==="clear"){
@@ -97,30 +119,24 @@ function runCmd(){
 
   if(c[0]==="ban"){
     badWords.push(c[1]);
-    alert("Mot banni ajouté");
   }
 
   save();
   render();
 }
 
-// export data
-function exportData(){
-  const data = JSON.stringify(messages);
-  navigator.clipboard.writeText(data);
-  alert("Copié JSON !");
-}
+// AUTO UPDATE LIVE
+setInterval(()=>{
+  let newData = JSON.parse(localStorage.getItem("msgs")) || [];
 
-// reset
-function resetAll(){
-  if(confirm("Tout supprimer ?")){
-    messages = [];
-    save();
+  if(JSON.stringify(newData) !== JSON.stringify(messages)){
+    messages = newData;
     render();
   }
-}
+},800);
 
-// search live
-document.getElementById("search").addEventListener("input",render);
+// SEARCH
+search.addEventListener("input", render);
 
+render();
 render();
