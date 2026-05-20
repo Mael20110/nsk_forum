@@ -1,4 +1,4 @@
-console.log("🔥 APP.JS CHARGÉ");
+console.log("🔥 APP.JS CHARGÉ (DEBUG MODE)");
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -6,7 +6,9 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // CONFIG
 // ======================
 let maintenance = false;
+const DEBUG = true;
 
+// ⚠️ SUPABASE
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
@@ -15,9 +17,9 @@ const supabase = createClient(
 // ======================
 // STATE
 // ======================
+let messages = [];
 let selectedId = null;
 let isAdmin = false;
-let messages = [];
 let lastSend = 0;
 
 // ======================
@@ -39,15 +41,15 @@ const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
 // ======================
-// MAINTENANCE MODE
+// MAINTENANCE
 // ======================
 function checkMaintenance() {
   if (!maintenance) return false;
 
   document.body.innerHTML = `
     <div class="maintenance">
-      <h1>🛠️ Maintenance en cours</h1>
-      <p>Le site est temporairement fermé</p>
+      <h1>🛠️ Maintenance</h1>
+      <p>Site fermé temporairement</p>
       <div class="ribbons"></div>
     </div>
   `;
@@ -56,20 +58,29 @@ function checkMaintenance() {
 }
 
 // ======================
-// LOAD MESSAGES
+// LOAD (DEBUG 400 SAFE)
 // ======================
 async function loadMessages() {
 
   if (checkMaintenance()) return;
 
+  if (DEBUG) console.log("📡 LOAD MESSAGES START");
+
   const { data, error } = await supabase
     .from("messages")
-    .select("*")
-    .order("created_at", { ascending: true });
+    .select("*"); // ⚠️ ORDER ENLEVÉ POUR TEST 400
 
-  if (error) {
-    console.log("LOAD ERROR:", error);
-    return;
+  if (DEBUG) {
+    console.log("📦 DATA:", data);
+    console.log("❌ ERROR:", error);
+
+    if (error) {
+      console.log("🚨 SUPABASE ERROR DETECTED");
+      console.log("👉 Vérifie ta table messages:");
+      console.log("- created_at existe ?");
+      console.log("- blocked existe ?");
+      console.log("- nom de table correct ?");
+    }
   }
 
   messages = data || [];
@@ -77,7 +88,7 @@ async function loadMessages() {
 }
 
 // ======================
-// RENDER
+// RENDER SAFE
 // ======================
 function render() {
 
@@ -86,8 +97,8 @@ function render() {
   messagesDiv.innerHTML = "";
 
   const filtered = messages
-    .filter(m => m.text?.toLowerCase().includes(searchVal))
-    .filter(m => !m.blocked); // 🚀 anti-banned messages
+    .filter(m => m?.text?.toLowerCase().includes(searchVal))
+    .filter(m => m?.blocked !== true); // SAFE
 
   filtered.forEach(m => {
 
@@ -97,10 +108,10 @@ function render() {
 
         ${isAdmin ? `<div class="admin-check">${selectedId === m.id ? "☑️" : "⬜"}</div>` : ""}
 
-        <b>${m.name}</b>
-        <span class="small">${m.email}</span>
+        <b>${m.name || ""}</b>
+        <span class="small">${m.email || ""}</span>
 
-        <p>${m.text}</p>
+        <p>${m.text || ""}</p>
 
         ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
       </div>
@@ -109,31 +120,27 @@ function render() {
 }
 
 // ======================
-// SEND MESSAGE
+// SEND MESSAGE (DEBUG SAFE)
 // ======================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const now = Date.now();
-
-  // ⛔ anti spam
   if (now - lastSend < 5000) {
-    alert("⛔ Attends avant de renvoyer un message");
+    alert("⛔ Anti-spam actif");
     return;
   }
-
   lastSend = now;
 
-  // ⛔ filtre
-  const text = textInput.value.toLowerCase();
   const badWords = ["merde", "putain", "fuck"];
+  const text = textInput.value.toLowerCase();
 
   if (badWords.some(w => text.includes(w))) {
     alert("⛔ Message bloqué");
     return;
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("messages")
     .insert([
       {
@@ -145,26 +152,36 @@ form.addEventListener("submit", async (e) => {
       }
     ]);
 
-  if (error) {
-    console.log("INSERT ERROR:", error);
-    return;
+  if (DEBUG) {
+    console.log("📤 INSERT DATA:", data);
+    console.log("❌ INSERT ERROR:", error);
+
+    if (error) {
+      console.log("🚨 INSERT 400 DETECTED");
+      console.log("👉 colonne manquante probable");
+    }
   }
 
-  form.reset();
-  loadMessages();
+  if (!error) {
+    form.reset();
+    loadMessages();
+  }
 });
 
 // ======================
-// SELECT MESSAGE
+// SELECT MESSAGE (SAFE FIX)
 // ======================
 window.selectMsg = function (id) {
 
-  const msg = messages.find(m => m.id === id);
+  const msg = messages.find(m => String(m.id) === String(id));
 
-  if (!msg) return;
+  if (!msg) {
+    console.log("❌ Message introuvable:", id);
+    return;
+  }
 
   selectedId = id;
-  selectedDiv.innerText = msg.text;
+  selectedDiv.innerText = msg.text || "(vide)";
 };
 
 // ======================
@@ -193,10 +210,7 @@ window.reply = async function () {
     .update({ reply: replyInput.value })
     .eq("id", selectedId);
 
-  if (error) {
-    console.log(error);
-    return;
-  }
+  if (DEBUG) console.log("REPLY ERROR:", error);
 
   replyInput.value = "";
   loadMessages();
@@ -241,3 +255,4 @@ searchInput.addEventListener("input", render);
 // INIT
 // ======================
 loadMessages();
+    
