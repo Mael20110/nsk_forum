@@ -4,43 +4,50 @@ const status = document.getElementById("status");
 // mots interdits
 const bannedWords = ["spam", "hack", "arnaque", "insulte"];
 
-// envoyer message
-form.addEventListener("submit", function(e){
+// anti-spam simple (limite temps)
+let lastSend = 0;
+
+form.addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-  const message = document.getElementById("message").value;
-
-  // règle longueur minimum
-  if(message.length < 20){
-    status.innerText = "❌ Minimum 20 caractères";
+  const now = Date.now();
+  if (now - lastSend < 10000) {
+    status.innerText = "⛔ Attends quelques secondes avant de renvoyer un message.";
     return;
   }
 
-  // filtre mots interdits
-  if(bannedWords.some(word => message.toLowerCase().includes(word))){
-    status.innerText = "❌ Message refusé (mot interdit)";
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const message = document.getElementById("message").value.trim();
+
+  // longueur minimum
+  if (message.length < 20) {
+    status.innerText = "❌ Minimum 20 caractères.";
     return;
   }
 
-  // objet message
+  // mots interdits
+  if (bannedWords.some(word => message.toLowerCase().includes(word))) {
+    status.innerText = "❌ Message refusé (mot interdit).";
+    return;
+  }
+
   const newMessage = {
     name,
     email,
     message,
     date: new Date().toLocaleString(),
-    response: ""
+    response: "",
+    status: "pending"
   };
 
-  // récupérer messages existants
   let messages = JSON.parse(localStorage.getItem("messages")) || [];
-
   messages.push(newMessage);
 
   localStorage.setItem("messages", JSON.stringify(messages));
 
-  status.innerText = "✅ Message envoyé !";
+  lastSend = now;
 
+  status.innerText = "✅ Message envoyé !";
   form.reset();
 });
