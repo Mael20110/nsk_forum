@@ -1,4 +1,5 @@
 console.log("🔥 APP.JS CHARGÉ");
+let maintenance = false; // 👉 change ça à true pour activer
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 // ======================
