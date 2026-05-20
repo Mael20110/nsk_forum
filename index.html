@@ -4,34 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NSK Forum</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <h1>NSK Forum</h1>
+  <h1>NSK Forum</h1>
 
-    <form id="contactForm">
+  <!-- FORMULAIRE USER -->
+  <form id="contactForm">
+    <input type="text" id="name" placeholder="Votre nom" required>
+    <input type="email" id="email" placeholder="Votre email" required>
+    <textarea id="message" placeholder="Votre message" required></textarea>
 
-      <input type="text" id="name" placeholder="Votre nom" required>
+    <button type="submit">Envoyer</button>
+  </form>
 
-      <input type="email" id="email" placeholder="Votre email" required>
+  <p id="status"></p>
 
-      <textarea id="message" placeholder="Votre message"></textarea>
+  <hr style="opacity:0.1;margin:20px 0;">
 
-      <button type="submit">
-        Envoyer
-      </button>
+  <!-- LISTE MESSAGES -->
+  <h2>Messages</h2>
+  <div id="messages"></div>
 
-    </form>
+  <!-- ADMIN PANEL -->
+  <div class="box" id="adminBox">
+    <h3>Admin Panel</h3>
 
-    <p id="status"></p>
+    <input type="password" id="adminPass" placeholder="Mot de passe admin">
+    <button onclick="loginAdmin()">Se connecter</button>
 
+    <div id="adminPanel" style="display:none;">
+      <textarea id="replyText" placeholder="Répondre..."></textarea>
+      <button onclick="replyMessage()">Envoyer réponse</button>
+    </div>
   </div>
 
-  <script src="app.js"></script>
+</div>
 
+<script src="app.js"></script>
 </body>
 </html>
