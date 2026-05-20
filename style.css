@@ -1,73 +1,122 @@
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0a0a0a;
-  color:white;
+/* ======================
+   BASE
+====================== */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0a0a0a;
+  color: white;
 }
 
-.container{
-  max-width:750px;
-  margin:30px auto;
-  padding:20px;
-  background:#111;
-  border-radius:16px;
+/* ======================
+   CONTAINER
+====================== */
+
+.container {
+  max-width: 750px;
+  margin: 30px auto;
+  padding: 20px;
+  background: #111;
+  border-radius: 16px;
 }
 
-input,textarea{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  background:#000;
-  border:1px solid #333;
-  color:white;
-  border-radius:10px;
+/* ======================
+   INPUTS
+====================== */
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  background: #000;
+  border: 1px solid #333;
+  color: white;
+  border-radius: 10px;
+  outline: none;
 }
 
-button{
-  width:100%;
-  margin-top:10px;
-  padding:10px;
-  border:none;
-  border-radius:10px;
-  background:white;
-  color:black;
-  font-weight:bold;
-  cursor:pointer;
+/* ======================
+   BUTTON
+====================== */
+
+button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: white;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.msg{
-  background:#0d0d0d;
-  border:1px solid #222;
-  padding:10px;
-  margin-top:10px;
-  border-radius:10px;
-  cursor:pointer;
+button:hover {
+  background: #ddd;
 }
 
-.msg:hover{
-  border-color:#555;
+/* ======================
+   MESSAGES
+====================== */
+
+.msg {
+  background: #0d0d0d;
+  border: 1px solid #222;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.selected{
-  border:2px solid #00ff88;
+.msg:hover {
+  border-color: #555;
 }
 
-.small{
-  font-size:12px;
-  opacity:0.7;
+.selected {
+  border: 2px solid #00ff88;
 }
 
-.reply{
-  color:#00ff88;
-  margin-top:5px;
+.small {
+  font-size: 12px;
+  opacity: 0.7;
 }
+
+.reply {
+  margin-top: 5px;
+  color: #00ff88;
+}
+
+/* ======================
+   ADMIN PANEL
+====================== */
+
+#admin {
+  margin-top: 10px;
+}
+
+/* ======================
+   MAINTENANCE MODE (SAFE)
+====================== */
 
 .maintenance {
-  position: relative;
+  position: fixed;
+  inset: 0;
+  background: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   overflow: hidden;
+  z-index: 9999;
+  text-align: center;
 }
 
-/* BANDEROLES BORDS ÉCRAN */
+/* BANDES CHANTIER SUR LES CÔTÉS */
 .maintenance::before,
 .maintenance::after {
   content: "";
@@ -79,28 +128,35 @@ button{
     45deg,
     #ff0000,
     #ff0000 20px,
-    #000000 20px,
-    #000000 40px
+    #000 20px,
+    #000 40px
   );
-  animation: slide 1.5s linear infinite;
-  z-index: 9999;
+  animation: moveStripes 1.2s linear infinite;
+  z-index: 10000;
 }
 
-/* gauche */
 .maintenance::before {
   left: 0;
 }
 
-/* droite */
 .maintenance::after {
   right: 0;
 }
 
-@keyframes slide {
+/* animation */
+@keyframes moveStripes {
   0% {
     background-position: 0 0;
   }
   100% {
     background-position: 0 80px;
   }
+}
+
+/* ======================
+   SCROLL FIX
+====================== */
+
+html, body {
+  height: 100%;
 }
