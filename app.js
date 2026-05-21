@@ -7,7 +7,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ======================
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
+  "TON_ANON_KEY"
 );
 
 // ======================
@@ -16,7 +16,18 @@ const supabase = createClient(
 let messages = [];
 let selectedId = null;
 let isAdmin = false;
-let maintenance = false;
+
+// ======================
+// BAD WORDS
+// ======================
+const badWords = [
+  "merde",
+  "putain",
+  "fuck",
+  "shit",
+  "ntm",
+  "enculé"
+];
 
 // ======================
 // ELEMENTS
@@ -37,40 +48,7 @@ const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
 // ======================
-// SETTINGS (MAINTENANCE GLOBAL)
-// ======================
-async function loadSettings() {
-
-  console.log("📡 LOAD SETTINGS...");
-
-  const { data, error } = await supabase
-    .from("settings")
-    .select("*")
-    .eq("id", 1)
-    .single();
-
-  if (error) {
-    console.log("SETTINGS ERROR", error);
-    return;
-  }
-
-  maintenance = data?.maintenance;
-
-  console.log("🛠️ MAINTENANCE =", maintenance);
-
-  if (maintenance === true) {
-    document.body.innerHTML = `
-      <div class="maintenance">
-        <h1>🛠️ Maintenance</h1>
-        <p>Site temporairement fermé</p>
-      </div>
-    `;
-    return;
-  }
-}
-
-// ======================
-// MESSAGES
+// LOAD MESSAGES
 // ======================
 async function loadMessages() {
 
@@ -80,7 +58,7 @@ async function loadMessages() {
     .order("created_at", { ascending: true });
 
   if (error) {
-    console.log("LOAD ERROR", error);
+    console.log("LOAD ERROR:", error);
     return;
   }
 
@@ -98,6 +76,7 @@ function render() {
   messagesDiv.innerHTML = "";
 
   messages
+    .filter(m => !m.blocked) // 🚫 hide banned messages
     .filter(m => (m.text || "").toLowerCase().includes(search))
     .forEach(m => {
 
@@ -110,54 +89,77 @@ function render() {
 
           <p>${m.text}</p>
 
-          ${m.reply ? `<div class="reply">↳ ${m.reply}</div>` : ""}
+          ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
         </div>
       `;
     });
 }
 
 // ======================
-// SEND
+// SEND MESSAGE
 // ======================
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  await supabase.from("messages").insert([{
+  const text = textInput.value.toLowerCase();
+
+  // 🚫 anti bad words
+  if (badWords.some(w => text.includes(w))) {
+    alert("⛔ Message bloqué (insulte)");
+    return;
+  }
+
+  const { error } = await supabase.from("messages").insert([{
     name: nameInput.value,
     email: emailInput.value,
     text: textInput.value,
-    reply: ""
+    reply: "",
+    blocked: false
   }]);
+
+  if (error) {
+    console.log("INSERT ERROR:", error);
+    return;
+  }
 
   form.reset();
   loadMessages();
 });
 
 // ======================
-// SELECT
+// SELECT MESSAGE
 // ======================
-window.selectMsg = function(id){
+window.selectMsg = function(id) {
+
   const msg = messages.find(m => m.id === id);
-  if(!msg) return;
+  if (!msg) return;
 
   selectedId = id;
-  selectedDiv.innerText = msg.text;
+
+  selectedDiv.innerHTML = `
+    <b>${msg.name}</b><br>
+    ${msg.text}
+  `;
 };
 
 // ======================
-// LOGIN
+// LOGIN ADMIN
 // ======================
-window.login = function(){
-  if(passInput.value === "admin123"){
+window.login = function() {
+
+  if (passInput.value === "admin123") {
     isAdmin = true;
     adminPanel.style.display = "block";
+    alert("Admin connecté");
   }
 };
 
 // ======================
 // REPLY
 // ======================
-window.reply = async function(){
+window.reply = async function() {
+
+  if (!selectedId) return;
 
   await supabase
     .from("messages")
@@ -169,31 +171,49 @@ window.reply = async function(){
 };
 
 // ======================
-// COMMANDS
+// BAN FUNCTION (CORE)
 // ======================
-window.runCmd = async function(){
+async function banMessage(id) {
+
+  await supabase
+    .from("messages")
+    .update({ blocked: true })
+    .eq("id", id);
+
+  alert("🚫 Message banni");
+  loadMessages();
+}
+
+// ======================
+// ADMIN COMMANDS
+// ======================
+window.runCmd = async function() {
 
   const c = cmdInput.value.split(" ");
 
-  if (c[0] === "maintenance" && c[1] === "on") {
-    await supabase.from("settings")
-      .update({ maintenance: true })
-      .eq("id", 1);
-  }
-
-  if (c[0] === "maintenance" && c[1] === "off") {
-    await supabase.from("settings")
-      .update({ maintenance: false })
-      .eq("id", 1);
+  // 🚫 ban via commande
+  if (c[0] === "ban") {
+    banMessage(c[1]);
   }
 
   cmdInput.value = "";
 };
 
 // ======================
+// BAN BUTTON (SELECTED MESSAGE)
+// ======================
+window.banSelected = async function() {
+
+  if (!selectedId) {
+    alert("Aucun message sélectionné");
+    return;
+  }
+
+  banMessage(selectedId);
+};
+
+// ======================
 // INIT
 // ======================
-loadSettings();
 loadMessages();
-setInterval(loadSettings, 3000);
 setInterval(loadMessages, 2000);
