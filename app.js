@@ -7,7 +7,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ======================
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
+  "TA_ANON_KEY"
 );
 
 // ======================
@@ -76,7 +76,7 @@ function render() {
   messagesDiv.innerHTML = "";
 
   messages
-    .filter(m => !m.blocked) // 🚫 hide banned messages
+    .filter(m => !m.blocked)
     .filter(m => (m.text || "").toLowerCase().includes(search))
     .forEach(m => {
 
@@ -84,12 +84,16 @@ function render() {
         <div class="msg ${selectedId === m.id ? "selected" : ""}"
              onclick="selectMsg('${m.id}')">
 
-          <b>${m.name}</b>
-          <span class="small">${m.email}</span>
+          <b>${m.name || "Anonyme"}</b>
+          <span class="small">${m.email || ""}</span>
 
-          <p>${m.text}</p>
+          <p>${m.text || ""}</p>
 
-          ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
+          ${m.reply
+            ? `<div style="color:#00ff88">↳ ${m.reply}</div>`
+            : ""
+          }
+
         </div>
       `;
     });
@@ -99,23 +103,26 @@ function render() {
 // SEND MESSAGE
 // ======================
 form.addEventListener("submit", async (e) => {
+
   e.preventDefault();
 
   const text = textInput.value.toLowerCase();
 
-  // 🚫 anti bad words
+  // BAD WORDS
   if (badWords.some(w => text.includes(w))) {
     alert("⛔ Message bloqué (insulte)");
     return;
   }
 
-  const { error } = await supabase.from("messages").insert([{
-    name: nameInput.value,
-    email: emailInput.value,
-    text: textInput.value,
-    reply: "",
-    blocked: false
-  }]);
+  const { error } = await supabase
+    .from("messages")
+    .insert([{
+      name: nameInput.value,
+      email: emailInput.value,
+      text: textInput.value,
+      reply: "",
+      blocked: false
+    }]);
 
   if (error) {
     console.log("INSERT ERROR:", error);
@@ -132,6 +139,7 @@ form.addEventListener("submit", async (e) => {
 window.selectMsg = function(id) {
 
   const msg = messages.find(m => m.id === id);
+
   if (!msg) return;
 
   selectedId = id;
@@ -148,8 +156,10 @@ window.selectMsg = function(id) {
 window.login = function() {
 
   if (passInput.value === "admin123") {
+
     isAdmin = true;
     adminPanel.style.display = "block";
+
     alert("Admin connecté");
   }
 };
@@ -163,35 +173,40 @@ window.reply = async function() {
 
   await supabase
     .from("messages")
-    .update({ reply: replyInput.value })
+    .update({
+      reply: replyInput.value
+    })
     .eq("id", selectedId);
 
   replyInput.value = "";
+
   loadMessages();
 };
 
 // ======================
-// BAN FUNCTION (CORE)
+// BAN MESSAGE
 // ======================
 async function banMessage(id) {
 
   await supabase
     .from("messages")
-    .update({ blocked: true })
+    .update({
+      blocked: true
+    })
     .eq("id", id);
 
   alert("🚫 Message banni");
+
   loadMessages();
 }
 
 // ======================
-// ADMIN COMMANDS
+// COMMANDS
 // ======================
 window.runCmd = async function() {
 
   const c = cmdInput.value.split(" ");
 
-  // 🚫 ban via commande
   if (c[0] === "ban") {
     banMessage(c[1]);
   }
@@ -200,7 +215,7 @@ window.runCmd = async function() {
 };
 
 // ======================
-// BAN BUTTON (SELECTED MESSAGE)
+// BAN SELECTED
 // ======================
 window.banSelected = async function() {
 
@@ -216,4 +231,5 @@ window.banSelected = async function() {
 // INIT
 // ======================
 loadMessages();
+
 setInterval(loadMessages, 2000);
