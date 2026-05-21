@@ -13,31 +13,23 @@
 
 <h1>NSK Forum PRO</h1>
 
-<!-- ======================
-     FORMULAIRE
-====================== -->
+<!-- FORMULAIRE -->
 <form id="form">
   <input id="name" placeholder="Nom" required>
   <input id="email" placeholder="Email" required>
   <textarea id="text" placeholder="Message" required></textarea>
-  <button>Envoyer</button>
+  <button type="submit">Envoyer</button>
 </form>
 
-<!-- ======================
-     SEARCH
-====================== -->
+<!-- SEARCH -->
 <input id="search" placeholder="Rechercher...">
 
-<!-- ======================
-     MESSAGES
-====================== -->
+<!-- MESSAGES -->
 <div id="messages"></div>
 
 <hr>
 
-<!-- ======================
-     ADMIN PANEL
-====================== -->
+<!-- ADMIN -->
 <div class="box">
 
   <h3>Admin Panel</h3>
@@ -47,18 +39,16 @@
 
   <div id="admin" style="display:none;">
 
-    <!-- MESSAGE SELECTION -->
     <p><b>Message sélectionné :</b></p>
     <div id="selected">Aucun</div>
 
-    <!-- REPLY -->
     <textarea id="reply" placeholder="Réponse admin"></textarea>
     <button onclick="reply()">Envoyer réponse</button>
 
-    <!-- BAN SELECTED -->
-    <button onclick="banSelected()">🚫 Bannir message sélectionné</button>
+    <button onclick="banSelected()">
+      🚫 Bannir message sélectionné
+    </button>
 
-    <!-- COMMANDS -->
     <input id="cmd" placeholder="ban <id>">
     <button onclick="runCmd()">Run commande</button>
 
@@ -68,9 +58,6 @@
 
 </div>
 
-<!-- ======================
-     JS
-====================== -->
 <script type="module" src="app.js"></script>
 
 </body>
