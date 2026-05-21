@@ -16,7 +16,6 @@ const supabase = createClient(
 let messages = [];
 let selectedId = null;
 let isAdmin = false;
-let maintenance = false;
 
 // ======================
 // BAD WORDS
@@ -27,22 +26,7 @@ const badWords = [
   "fuck",
   "shit",
   "ntm",
-  "enculé",
-  "fdp",
-  "Hitler",
-  "hitler",
-  "con",
-  "connard",
-  "negros"
-  "sales noirs",
-  "sals noirs",
-  "tg",
-  "Tg",
-  "Ftg",
-  "fils de pute",
-  "pute",
-  "salope",
-  
+  "enculé"
 ];
 
 // ======================
@@ -62,48 +46,6 @@ const adminPanel = document.getElementById("admin");
 const selectedDiv = document.getElementById("selected");
 const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
-
-// ======================
-// LOAD SETTINGS
-// ======================
-async function loadSettings() {
-
-  const { data, error } = await supabase
-    .from("settings")
-    .select("*")
-    .eq("id", 1)
-    .single();
-
-  console.log("SETTINGS:", data);
-  console.log("SETTINGS ERROR:", error);
-
-  if (error || !data) return;
-
-  maintenance = data.maintenance;
-
-  if (maintenance === true) {
-
-    document.body.innerHTML = `
-      <div style="
-        position:fixed;
-        inset:0;
-        background:black;
-        color:white;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        flex-direction:column;
-        font-family:Arial;
-        z-index:99999;
-      ">
-        <h1>🛠️ Maintenance</h1>
-        <p>Site temporairement fermé</p>
-      </div>
-    `;
-
-    return;
-  }
-}
 
 // ======================
 // LOAD MESSAGES
@@ -142,12 +84,16 @@ function render() {
         <div class="msg ${selectedId === m.id ? "selected" : ""}"
              onclick="selectMsg('${m.id}')">
 
-          <b>${m.name}</b>
-          <span class="small">${m.email}</span>
+          <b>${m.name || "Anonyme"}</b>
+          <span class="small">${m.email || ""}</span>
 
-          <p>${m.text}</p>
+          <p>${m.text || ""}</p>
 
-          ${m.reply ? `<div style="color:#00ff88">↳ ${m.reply}</div>` : ""}
+          ${m.reply
+            ? `<div style="color:#00ff88">↳ ${m.reply}</div>`
+            : ""
+          }
+
         </div>
       `;
     });
@@ -157,23 +103,26 @@ function render() {
 // SEND MESSAGE
 // ======================
 form.addEventListener("submit", async (e) => {
+
   e.preventDefault();
 
   const text = textInput.value.toLowerCase();
 
-  // 🚫 anti bad words
+  // BAD WORDS
   if (badWords.some(w => text.includes(w))) {
     alert("⛔ Message bloqué (insulte)");
     return;
   }
 
-  const { error } = await supabase.from("messages").insert([{
-    name: nameInput.value,
-    email: emailInput.value,
-    text: textInput.value,
-    reply: "",
-    blocked: false
-  }]);
+  const { error } = await supabase
+    .from("messages")
+    .insert([{
+      name: nameInput.value,
+      email: emailInput.value,
+      text: textInput.value,
+      reply: "",
+      blocked: false
+    }]);
 
   if (error) {
     console.log("INSERT ERROR:", error);
@@ -190,6 +139,7 @@ form.addEventListener("submit", async (e) => {
 window.selectMsg = function(id) {
 
   const msg = messages.find(m => m.id === id);
+
   if (!msg) return;
 
   selectedId = id;
@@ -206,8 +156,10 @@ window.selectMsg = function(id) {
 window.login = function() {
 
   if (passInput.value === "admin123") {
+
     isAdmin = true;
     adminPanel.style.display = "block";
+
     alert("Admin connecté");
   }
 };
@@ -221,35 +173,40 @@ window.reply = async function() {
 
   await supabase
     .from("messages")
-    .update({ reply: replyInput.value })
+    .update({
+      reply: replyInput.value
+    })
     .eq("id", selectedId);
 
   replyInput.value = "";
+
   loadMessages();
 };
 
 // ======================
-// BAN FUNCTION (CORE)
+// BAN MESSAGE
 // ======================
 async function banMessage(id) {
 
   await supabase
     .from("messages")
-    .update({ blocked: true })
+    .update({
+      blocked: true
+    })
     .eq("id", id);
 
   alert("🚫 Message banni");
+
   loadMessages();
 }
 
 // ======================
-// ADMIN COMMANDS
+// COMMANDS
 // ======================
 window.runCmd = async function() {
 
   const c = cmdInput.value.split(" ");
 
-  // 🚫 ban via commande
   if (c[0] === "ban") {
     banMessage(c[1]);
   }
@@ -258,7 +215,7 @@ window.runCmd = async function() {
 };
 
 // ======================
-// BAN BUTTON (SELECTED MESSAGE)
+// BAN SELECTED
 // ======================
 window.banSelected = async function() {
 
@@ -273,8 +230,6 @@ window.banSelected = async function() {
 // ======================
 // INIT
 // ======================
-loadSettings();
 loadMessages();
 
-setInterval(loadSettings, 3000);
 setInterval(loadMessages, 2000);
