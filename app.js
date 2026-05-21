@@ -7,7 +7,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ======================
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
+  "TON_ANON_KEY"
 );
 
 // ======================
@@ -16,6 +16,7 @@ const supabase = createClient(
 let messages = [];
 let selectedId = null;
 let isAdmin = false;
+let maintenance = false;
 
 // ======================
 // BAD WORDS
@@ -48,6 +49,39 @@ const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
 // ======================
+// LOAD SETTINGS (MAINTENANCE GLOBAL)
+// ======================
+async function loadSettings() {
+
+  const { data, error } = await supabase
+    .from("settings")
+    .select("*")
+    .eq("id", 1)
+    .single();
+
+  if (error) {
+    console.log("SETTINGS ERROR:", error);
+    return;
+  }
+
+  maintenance = data?.maintenance;
+
+  console.log("🛠️ MAINTENANCE =", maintenance);
+
+  if (maintenance === true) {
+
+    document.body.innerHTML = `
+      <div class="maintenance">
+        <h1>🛠️ Maintenance en cours</h1>
+        <p>Site temporairement fermé</p>
+      </div>
+    `;
+
+    return;
+  }
+}
+
+// ======================
 // LOAD MESSAGES
 // ======================
 async function loadMessages() {
@@ -76,7 +110,7 @@ function render() {
   messagesDiv.innerHTML = "";
 
   messages
-    .filter(m => !m.blocked) // 🚫 hide banned messages
+    .filter(m => !m.blocked)
     .filter(m => (m.text || "").toLowerCase().includes(search))
     .forEach(m => {
 
@@ -103,7 +137,6 @@ form.addEventListener("submit", async (e) => {
 
   const text = textInput.value.toLowerCase();
 
-  // 🚫 anti bad words
   if (badWords.some(w => text.includes(w))) {
     alert("⛔ Message bloqué (insulte)");
     return;
@@ -171,7 +204,7 @@ window.reply = async function() {
 };
 
 // ======================
-// BAN FUNCTION (CORE)
+// BAN CORE
 // ======================
 async function banMessage(id) {
 
@@ -185,22 +218,7 @@ async function banMessage(id) {
 }
 
 // ======================
-// ADMIN COMMANDS
-// ======================
-window.runCmd = async function() {
-
-  const c = cmdInput.value.split(" ");
-
-  // 🚫 ban via commande
-  if (c[0] === "ban") {
-    banMessage(c[1]);
-  }
-
-  cmdInput.value = "";
-};
-
-// ======================
-// BAN BUTTON (SELECTED MESSAGE)
+// BAN SELECTED BUTTON
 // ======================
 window.banSelected = async function() {
 
@@ -213,7 +231,23 @@ window.banSelected = async function() {
 };
 
 // ======================
+// ADMIN COMMANDS
+// ======================
+window.runCmd = async function() {
+
+  const c = cmdInput.value.split(" ");
+
+  if (c[0] === "ban") {
+    banMessage(c[1]);
+  }
+
+  cmdInput.value = "";
+};
+
+// ======================
 // INIT
 // ======================
+loadSettings();
 loadMessages();
+setInterval(loadSettings, 3000);
 setInterval(loadMessages, 2000);
