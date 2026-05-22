@@ -21,6 +21,7 @@ input,textarea{
   border:1px solid #333;
   color:white;
   border-radius:10px;
+  box-sizing:border-box;
 }
 
 button{
@@ -62,41 +63,47 @@ button{
   margin-top:5px;
 }
 
-.maintenance {
-  position: fixed;
-  inset: 0;
-  background: black;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  text-align: center;
+#myMessages{
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  width:300px;
+  max-height:400px;
+  overflow:auto;
+  background:#111;
+  border:1px solid #333;
+  border-radius:12px;
+  padding:10px;
+  z-index:9999;
 }
 
-/* BANDES CHANTIER (SAFE VERSION) */
-.maintenance::before,
-.maintenance::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  width: 70px;
-  height: 100%;
-  background: repeating-linear-gradient(
-    45deg,
-    red,
-    red 20px,
-    black 20px,
-    black 40px
-  );
-  animation: move 1.2s linear infinite;
+#myMessagesHeader{
+  font-weight:bold;
+  margin-bottom:10px;
 }
 
-.maintenance::before { left: 0; }
-.maintenance::after { right: 0; }
+.myReply{
+  background:#0a0a0a;
+  border:1px solid #222;
+  border-radius:10px;
+  padding:10px;
+  margin-top:10px;
+}
 
-@keyframes move {
-  0% { background-position: 0 0; }
-  100% { background-position: 0 80px; }
+.notif{
+  color:#00ff88;
+  font-weight:bold;
+  margin-top:5px;
+}
+
+#maintenanceScreen{
+  position:fixed;
+  inset:0;
+  background:black;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:999999;
 }
