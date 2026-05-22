@@ -7,7 +7,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ======================
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
+  "TA_ANON_KEY"
 );
 
 // ======================
@@ -27,7 +27,6 @@ const badWords = [
   "shit",
   "ntm",
   "enculé",
-  "hitler",
   "fdp",
   "connard",
   "connasse",
@@ -35,29 +34,16 @@ const badWords = [
   "pute",
   "encule",
   "batard",
-  "bâtard",
   "fils de pute",
-  "nique",
   "nique ta mère",
   "tg",
   "ta gueule",
   "bitch",
   "asshole",
   "motherfucker",
-  "dick",
-  "cunt",
-  "bastard",
-  "go kill yourself",
-  "kill yourself",
-  "kys",
-  "suicide",
-  "retard",
-  "retarded",
-  "raciste",
   "nazis",
   "nazi",
-  "white power",
-  "black monkey"
+  "hitler"
 ];
 
 // ======================
@@ -146,11 +132,17 @@ async function loadMessages(){
 // ======================
 function syncLocalReplies(){
 
-  const local = JSON.parse(localStorage.getItem("myMessages") || "[]");
+  const local = JSON.parse(
+    localStorage.getItem("myMessages") || "[]"
+  );
+
+  let hasNewReply = false;
 
   local.forEach(localMsg => {
 
-    const found = messages.find(m => m.text === localMsg.text);
+    const found = messages.find(
+      m => m.text === localMsg.text
+    );
 
     if(found && found.reply){
 
@@ -158,21 +150,41 @@ function syncLocalReplies(){
 
         localMsg.reply = found.reply;
 
-        if(!localMsg.notified){
-          alert("🔔 Nouvelle réponse admin !");
+        if(localMsg.notified !== true){
+
+          hasNewReply = true;
+
           localMsg.notified = true;
         }
       }
     }
   });
 
-  localStorage.setItem("myMessages", JSON.stringify(local));
+  localStorage.setItem(
+    "myMessages",
+    JSON.stringify(local)
+  );
 
   renderMyMessages();
+
+  if(hasNewReply){
+
+    alert("🔔 Nouvelle réponse admin !");
+
+    if(Notification.permission === "granted"){
+
+      new Notification(
+        "NSK Forum PRO",
+        {
+          body:"L'admin a répondu à votre message"
+        }
+      );
+    }
+  }
 }
 
 // ======================
-// RENDER LOCAL MESSAGES
+// RENDER MY MESSAGES
 // ======================
 function renderMyMessages(){
 
@@ -180,21 +192,51 @@ function renderMyMessages(){
 
   if(!box) return;
 
-  const local = JSON.parse(localStorage.getItem("myMessages") || "[]");
+  const local = JSON.parse(
+    localStorage.getItem("myMessages") || "[]"
+  );
 
   box.innerHTML = "";
 
-  local.forEach(m => {
+  if(local.length === 0){
+
+    box.innerHTML = `
+      <div class="myReply">
+        Aucun message envoyé
+      </div>
+    `;
+
+    return;
+  }
+
+  local.reverse().forEach(m => {
 
     box.innerHTML += `
       <div class="myReply">
 
-        <div><b>Vous :</b> ${m.text}</div>
+        <div>
+          <b>Vous :</b><br>
+          ${m.text}
+        </div>
 
-        ${m.reply
-          ? `<div class="notif">🔔 Réponse admin :</div>
-             <div>${m.reply}</div>`
-          : `<div>Aucune réponse</div>`
+        <br>
+
+        ${
+          m.reply
+          ? `
+            <div class="notif">
+              🔔 Réponse admin :
+            </div>
+
+            <div>
+              ${m.reply}
+            </div>
+          `
+          : `
+            <div style="opacity:0.6">
+              En attente de réponse...
+            </div>
+          `
         }
 
       </div>
@@ -221,11 +263,15 @@ function render(){
              onclick="selectMsg('${m.id}')">
 
           <b>${m.name || "Anonyme"}</b>
-          <span class="small">${m.email || ""}</span>
+
+          <span class="small">
+            ${m.email || ""}
+          </span>
 
           <p>${m.text || ""}</p>
 
-          ${m.reply
+          ${
+            m.reply
             ? `<div class="reply">↳ ${m.reply}</div>`
             : ""
           }
@@ -238,23 +284,23 @@ function render(){
 // ======================
 // SEND MESSAGE
 // ======================
-form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", async (e)=>{
 
   e.preventDefault();
 
   const text = textInput.value.toLowerCase();
 
   if(badWords.some(w => text.includes(w))){
-    alert("⛔ Message bloqué (insulte)");
+    alert("⛔ Message bloqué");
     return;
   }
 
   const payload = {
-    name: nameInput.value,
-    email: emailInput.value,
-    text: textInput.value,
-    reply: "",
-    blocked: false
+    name:nameInput.value,
+    email:emailInput.value,
+    text:textInput.value,
+    reply:"",
+    blocked:false
   };
 
   const { error } = await supabase
@@ -266,15 +312,20 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  const saved = JSON.parse(localStorage.getItem("myMessages") || "[]");
+  const saved = JSON.parse(
+    localStorage.getItem("myMessages") || "[]"
+  );
 
   saved.push({
-    text: textInput.value,
-    reply: "",
-    notified: false
+    text:textInput.value,
+    reply:"",
+    notified:false
   });
 
-  localStorage.setItem("myMessages", JSON.stringify(saved));
+  localStorage.setItem(
+    "myMessages",
+    JSON.stringify(saved)
+  );
 
   form.reset();
 
@@ -323,7 +374,7 @@ window.reply = async function(){
   await supabase
     .from("messages")
     .update({
-      reply: replyInput.value
+      reply:replyInput.value
     })
     .eq("id", selectedId);
 
@@ -364,7 +415,9 @@ window.runCmd = async function(){
 
     await supabase
       .from("settings")
-      .update({ maintenance:true })
+      .update({
+        maintenance:true
+      })
       .eq("id", 1);
 
     alert("🛠️ Maintenance ON");
@@ -374,7 +427,9 @@ window.runCmd = async function(){
 
     await supabase
       .from("settings")
-      .update({ maintenance:false })
+      .update({
+        maintenance:false
+      })
       .eq("id", 1);
 
     alert("🟢 Maintenance OFF");
@@ -399,8 +454,13 @@ window.banSelected = async function(){
 // ======================
 // INIT
 // ======================
+if(Notification.permission !== "granted"){
+  Notification.requestPermission();
+}
+
 loadSettings();
 loadMessages();
+renderMyMessages();
 
 setInterval(loadMessages, 2000);
 setInterval(loadSettings, 3000);
