@@ -27,7 +27,7 @@ const badWords = [
   "shit",
   "ntm",
   "enculé",
-  "Hitler,
+  "Hitler",
   "hitler",
   "fdp",
   "merde",
