@@ -13,12 +13,12 @@
 
 <h1>NSK Forum PRO</h1>
 
-<!-- FORMULAIRE -->
+<!-- FORM -->
 <form id="form">
   <input id="name" placeholder="Nom" required>
   <input id="email" placeholder="Email" required>
   <textarea id="text" placeholder="Message" required></textarea>
-  <button type="submit">Envoyer</button>
+  <button>Envoyer</button>
 </form>
 
 <!-- SEARCH -->
@@ -32,29 +32,39 @@
 <!-- ADMIN -->
 <div class="box">
 
-  <h3>Admin Panel</h3>
+<h3>Admin Panel</h3>
 
-  <input id="pass" type="password" placeholder="Mot de passe">
-  <button onclick="login()">Login</button>
+<input id="pass" type="password" placeholder="Mot de passe">
+<button onclick="login()">Login</button>
 
-  <div id="admin" style="display:none;">
+<div id="admin" style="display:none;">
 
-    <p><b>Message sélectionné :</b></p>
-    <div id="selected">Aucun</div>
+  <p><b>Message sélectionné :</b></p>
+  <div id="selected">Aucun</div>
 
-    <textarea id="reply" placeholder="Réponse admin"></textarea>
-    <button onclick="reply()">Envoyer réponse</button>
+  <textarea id="reply" placeholder="Réponse admin"></textarea>
 
-    <button onclick="banSelected()">
-      🚫 Bannir message sélectionné
-    </button>
+  <button onclick="reply()">Envoyer réponse</button>
 
-    <input id="cmd" placeholder="ban <id>">
-    <button onclick="runCmd()">Run commande</button>
+  <button onclick="banSelected()">🚫 Bannir message sélectionné</button>
 
-  </div>
+  <input id="cmd" placeholder="ban ID / maintenance on / maintenance off">
+  <button onclick="runCmd()">Run commande</button>
 
 </div>
+
+</div>
+
+</div>
+
+<!-- MES REPONSES -->
+<div id="myMessages">
+
+  <div id="myMessagesHeader">
+    📩 Mes réponses admin
+  </div>
+
+  <div id="myMessagesList"></div>
 
 </div>
 
