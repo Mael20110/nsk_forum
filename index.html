@@ -15,10 +15,15 @@
 
 <!-- FORM -->
 <form id="form">
+
   <input id="name" placeholder="Nom" required>
+
   <input id="email" placeholder="Email" required>
+
   <textarea id="text" placeholder="Message" required></textarea>
-  <button>Envoyer</button>
+
+  <button type="submit">Envoyer</button>
+
 </form>
 
 <!-- SEARCH -->
@@ -32,32 +37,42 @@
 <!-- ADMIN -->
 <div class="box">
 
-<h3>Admin Panel</h3>
+  <h3>Admin Panel</h3>
 
-<input id="pass" type="password" placeholder="Mot de passe">
-<button onclick="login()">Login</button>
+  <input id="pass" type="password" placeholder="Mot de passe">
 
-<div id="admin" style="display:none;">
+  <button onclick="login()">Login</button>
 
-  <p><b>Message sélectionné :</b></p>
-  <div id="selected">Aucun</div>
+  <div id="admin" style="display:none;">
 
-  <textarea id="reply" placeholder="Réponse admin"></textarea>
+    <p><b>Message sélectionné :</b></p>
 
-  <button onclick="reply()">Envoyer réponse</button>
+    <div id="selected">Aucun</div>
 
-  <button onclick="banSelected()">🚫 Bannir message sélectionné</button>
+    <textarea id="reply" placeholder="Réponse admin"></textarea>
 
-  <input id="cmd" placeholder="ban ID / maintenance on / maintenance off">
-  <button onclick="runCmd()">Run commande</button>
+    <button onclick="reply()">Envoyer réponse</button>
+
+    <button onclick="banSelected()">
+      🚫 Bannir message sélectionné
+    </button>
+
+    <input
+      id="cmd"
+      placeholder="ban ID / maintenance on / maintenance off"
+    >
+
+    <button onclick="runCmd()">
+      Run commande
+    </button>
+
+  </div>
 
 </div>
 
 </div>
 
-</div>
-
-<!-- MES REPONSES -->
+<!-- MESSAGES PERSO -->
 <div id="myMessages">
 
   <div id="myMessagesHeader">
