@@ -7,7 +7,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ======================
 const supabase = createClient(
   "https://hchrmmvmkdqqhknfytwi.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjaHJtbXZta2RxcWhrbmZ5dHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNzM3NzQsImV4cCI6MjA5NDg0OTc3NH0.xrIR3ItK7rPynUXmTFj9EqtN-1WW7LboyI2nAfas57I"
+  "TA_ANON_KEY"
 );
 
 // ======================
@@ -27,28 +27,20 @@ const badWords = [
   "shit",
   "ntm",
   "enculé",
-  "Hitler",
   "hitler",
   "fdp",
-  "merde",
-  "putain",
   "connard",
   "connasse",
   "salope",
   "pute",
-  "enculé",
   "encule",
   "batard",
   "bâtard",
-  "fdp",
   "fils de pute",
   "nique",
   "nique ta mère",
-  "ntm",
   "tg",
   "ta gueule",
-  "fuck",
-  "shit",
   "bitch",
   "asshole",
   "motherfucker",
@@ -63,7 +55,6 @@ const badWords = [
   "retarded",
   "raciste",
   "nazis",
-  "hitler",
   "nazi",
   "white power",
   "black monkey"
@@ -88,28 +79,133 @@ const replyInput = document.getElementById("reply");
 const cmdInput = document.getElementById("cmd");
 
 // ======================
+// LOAD SETTINGS
+// ======================
+async function loadSettings(){
+
+  const { data, error } = await supabase
+    .from("settings")
+    .select("*")
+    .eq("id", 1)
+    .single();
+
+  if(error || !data) return;
+
+  if(data.maintenance === true){
+
+    let screen = document.getElementById("maintenanceScreen");
+
+    if(!screen){
+
+      screen = document.createElement("div");
+
+      screen.id = "maintenanceScreen";
+
+      screen.innerHTML = `
+        <h1>🛠️ Maintenance</h1>
+        <p>Site temporairement fermé</p>
+      `;
+
+      document.body.appendChild(screen);
+    }
+
+  } else {
+
+    const old = document.getElementById("maintenanceScreen");
+
+    if(old){
+      old.remove();
+    }
+  }
+}
+
+// ======================
 // LOAD MESSAGES
 // ======================
-async function loadMessages() {
+async function loadMessages(){
 
   const { data, error } = await supabase
     .from("messages")
     .select("*")
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending:true });
 
-  if (error) {
+  if(error){
     console.log("LOAD ERROR:", error);
     return;
   }
 
   messages = data || [];
+
+  syncLocalReplies();
+
   render();
+}
+
+// ======================
+// LOCAL REPLIES
+// ======================
+function syncLocalReplies(){
+
+  const local = JSON.parse(localStorage.getItem("myMessages") || "[]");
+
+  local.forEach(localMsg => {
+
+    const found = messages.find(m => m.text === localMsg.text);
+
+    if(found && found.reply){
+
+      if(localMsg.reply !== found.reply){
+
+        localMsg.reply = found.reply;
+
+        if(!localMsg.notified){
+          alert("🔔 Nouvelle réponse admin !");
+          localMsg.notified = true;
+        }
+      }
+    }
+  });
+
+  localStorage.setItem("myMessages", JSON.stringify(local));
+
+  renderMyMessages();
+}
+
+// ======================
+// RENDER LOCAL MESSAGES
+// ======================
+function renderMyMessages(){
+
+  const box = document.getElementById("myMessagesList");
+
+  if(!box) return;
+
+  const local = JSON.parse(localStorage.getItem("myMessages") || "[]");
+
+  box.innerHTML = "";
+
+  local.forEach(m => {
+
+    box.innerHTML += `
+      <div class="myReply">
+
+        <div><b>Vous :</b> ${m.text}</div>
+
+        ${m.reply
+          ? `<div class="notif">🔔 Réponse admin :</div>
+             <div>${m.reply}</div>`
+          : `<div>Aucune réponse</div>`
+        }
+
+      </div>
+    `;
+  });
 }
 
 // ======================
 // RENDER
 // ======================
-function render() {
+function render(){
 
   const search = (searchInput.value || "").toLowerCase();
 
@@ -130,7 +226,7 @@ function render() {
           <p>${m.text || ""}</p>
 
           ${m.reply
-            ? `<div style="color:#00ff88">↳ ${m.reply}</div>`
+            ? `<div class="reply">↳ ${m.reply}</div>`
             : ""
           }
 
@@ -148,39 +244,51 @@ form.addEventListener("submit", async (e) => {
 
   const text = textInput.value.toLowerCase();
 
-  // BAD WORDS
-  if (badWords.some(w => text.includes(w))) {
+  if(badWords.some(w => text.includes(w))){
     alert("⛔ Message bloqué (insulte)");
     return;
   }
 
+  const payload = {
+    name: nameInput.value,
+    email: emailInput.value,
+    text: textInput.value,
+    reply: "",
+    blocked: false
+  };
+
   const { error } = await supabase
     .from("messages")
-    .insert([{
-      name: nameInput.value,
-      email: emailInput.value,
-      text: textInput.value,
-      reply: "",
-      blocked: false
-    }]);
+    .insert([payload]);
 
-  if (error) {
+  if(error){
     console.log("INSERT ERROR:", error);
     return;
   }
 
+  const saved = JSON.parse(localStorage.getItem("myMessages") || "[]");
+
+  saved.push({
+    text: textInput.value,
+    reply: "",
+    notified: false
+  });
+
+  localStorage.setItem("myMessages", JSON.stringify(saved));
+
   form.reset();
+
   loadMessages();
 });
 
 // ======================
 // SELECT MESSAGE
 // ======================
-window.selectMsg = function(id) {
+window.selectMsg = function(id){
 
-  const msg = messages.find(m => m.id === id);
+  const msg = messages.find(m => m.id == id);
 
-  if (!msg) return;
+  if(!msg) return;
 
   selectedId = id;
 
@@ -193,11 +301,12 @@ window.selectMsg = function(id) {
 // ======================
 // LOGIN ADMIN
 // ======================
-window.login = function() {
+window.login = function(){
 
-  if (passInput.value === "admin123") {
+  if(passInput.value === "admin123"){
 
     isAdmin = true;
+
     adminPanel.style.display = "block";
 
     alert("Admin connecté");
@@ -207,9 +316,9 @@ window.login = function() {
 // ======================
 // REPLY
 // ======================
-window.reply = async function() {
+window.reply = async function(){
 
-  if (!selectedId) return;
+  if(!selectedId) return;
 
   await supabase
     .from("messages")
@@ -226,12 +335,12 @@ window.reply = async function() {
 // ======================
 // BAN MESSAGE
 // ======================
-async function banMessage(id) {
+async function banMessage(id){
 
   await supabase
     .from("messages")
     .update({
-      blocked: true
+      blocked:true
     })
     .eq("id", id);
 
@@ -243,12 +352,32 @@ async function banMessage(id) {
 // ======================
 // COMMANDS
 // ======================
-window.runCmd = async function() {
+window.runCmd = async function(){
 
   const c = cmdInput.value.split(" ");
 
-  if (c[0] === "ban") {
+  if(c[0] === "ban"){
     banMessage(c[1]);
+  }
+
+  if(c[0] === "maintenance" && c[1] === "on"){
+
+    await supabase
+      .from("settings")
+      .update({ maintenance:true })
+      .eq("id", 1);
+
+    alert("🛠️ Maintenance ON");
+  }
+
+  if(c[0] === "maintenance" && c[1] === "off"){
+
+    await supabase
+      .from("settings")
+      .update({ maintenance:false })
+      .eq("id", 1);
+
+    alert("🟢 Maintenance OFF");
   }
 
   cmdInput.value = "";
@@ -257,9 +386,9 @@ window.runCmd = async function() {
 // ======================
 // BAN SELECTED
 // ======================
-window.banSelected = async function() {
+window.banSelected = async function(){
 
-  if (!selectedId) {
+  if(!selectedId){
     alert("Aucun message sélectionné");
     return;
   }
@@ -270,6 +399,8 @@ window.banSelected = async function() {
 // ======================
 // INIT
 // ======================
+loadSettings();
 loadMessages();
 
 setInterval(loadMessages, 2000);
+setInterval(loadSettings, 3000);
